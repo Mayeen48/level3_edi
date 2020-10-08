@@ -1,0 +1,25 @@
+user_name=super_admin@jacos.co.jp
+#user_name=user@jacos.co.jp
+password=Qe75ymSr
+login_url=http://localhost/level3_server/get_user_login
+get_schedule_data_url=http://localhost/level3_server/get_schedule_data
+set_schedule_data_url=http://localhost/level3_server/set_schedule_data
+schedule_file_data_url=http://localhost/level3_server/schedule_file_data
+schedule_time_data_url=http://localhost/level3_server/schedule_time_data
+set_file_path=http://localhost/level3_server/set_file_path
+file_send_url=http://localhost/level3_server/file_send_url
+get_shipment_file_url=http://localhost/level3_server/get_shipment_file
+add_customer_url=http://localhost/level3_server/add_customer
+get_customer_url=http://localhost/level3_server/get_customer
+delete_customer_url=http://localhost/level3_server/delete_customer_url
+history_url=http://localhost/level3_server/history_url
+history_create_url=http://localhost/level3_server/history_create
+add_service_url=http://localhost/level3_server/add_service
+show_service_url=http://localhost/level3_server/show_service_url
+delete_service_url=http://localhost/level3_server/delete_service
+set_job_data_url=http://localhost/level3_server/set_job_data
+get_service_data_url=http://localhost/level3_server/get_service_data
+report_api_url=http://localhost/level3_server/api/report_api
+#Time must be in seconds
+#Default trigger_execution_time=60 sec
+trigger_execution_time=60

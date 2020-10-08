@@ -1,0 +1,59 @@
+/*Upload*/
+
+.upload-btn-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.upload-btn-wrapper input[type=file] {
+    position: absolute;
+    /* left: 0; */
+    left: 448px;
+    top: 0;
+    opacity: 0;
+    z-index: -999;
+}
+
+.upload-btn-wrapper {
+    width: 100%;
+    border: 1px solid gray;
+    border-radius: 8px;
+    height: 39px;
+}
+
+.browse_btn {
+    float: right;
+    font-size: 20px;
+    font-weight: bold;
+    /* height: 38px; */
+    position: relative;
+    top: -37px;
+}
+
+.file_input {
+    /* width: 100%; */
+    width: 12%;
+    height: 43px;
+}
+
+.file_path_level {
+    /* height: 30px; */
+    height: 37px;
+    line-height: 40px;
+    /* extra */
+    width: 91%;
+    border: 0px;
+}
+
+.bord {
+    float: left;
+}
+
+.navi {
+    display: none;
+}
+
+.path_level {
+    padding-left: 0px !important;
+}

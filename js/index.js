@@ -9,6 +9,7 @@ var path = require('path');
 var FileSaver = require('file-saver');
 var { shell } = require('electron');
 var schedule = require('node-schedule');
+var axios = require('axios');
 // var axios = require('axios');
 // var path = require('path')
 // var $ = jQuery = require('jquery');

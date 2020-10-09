@@ -949,50 +949,25 @@ function user_login() {
         // API Data 
         // const request = require('request');
         var user_data = { user_name: user_name, password: password };
-        request({
-            body: user_data,
-            followAllRedirects: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            method: 'POST',
-            url: login_url,
-            json: true
-        }, callback);
-
-
-        function callback(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                // console.log(body);
-                if (body.message != "success") {
-                    alert(body.message);
-                    window.close();
-                } else {
-                    $('#user_name_show').html(body.user_name);
-                    $('#user_id').val(body.user_id);
-                    history();
-                    customerInfo(body.user_id);
-                    $('.loader').removeClass('d-block');
-                    $('.loader').addClass('d-none');
-                    $('.container').removeClass('d-none');
-                    $('.container').addClass('d-block');
-                    // setTimeout(function() {
-                    //     $('#area_refresh').click();
-                    //     $('#first_tab').click();
-                    //     console.log("Clicked");
-                    // }, 3000);
-                    // $('.cust_info_row').click();
-                    // areRefresh();
-                }
-                // console.log(response.permission_name);
-            } else {
-                // alert("Please check your server is running...");
-                alert("サーバーに接続できません。");
+        var userLoginHit = axios.post(login_url, user_data);
+        userLoginHit.then(({ data }) => {
+            if (data.message != "success") {
+                alert(data.message);
                 window.close();
+            } else {
+                $('#user_name_show').html(data.user_name);
+                $('#user_id').val(data.user_id);
+                history();
+                customerInfo(data.user_id);
+                $('.loader').removeClass('d-block');
+                $('.loader').addClass('d-none');
+                $('.container').removeClass('d-none');
+                $('.container').addClass('d-block');
             }
-        };
-
+        }).catch(()=>{
+            alert("サーバーに接続できません。");
+            window.close();
+        });
         // API Data 
     }
 
@@ -1110,10 +1085,32 @@ function customerInfo(user_id = null) {
     // var user_id = $('#user_id').val();
     var get_customer_url = properties.get('get_customer_url');
     var body_data = { user_id: user_id }
-    var cusrUrlCall = requestUrl(get_customer_url, body_data);
+    var cusrUrlCall = axios.post(get_customer_url, body_data);
+    // var cusrUrlCall = requestUrl(get_customer_url, body_data);
+    cusrUrlCall.then(({ data }) => {
+        // console.log(data)
+        var customers_data = data.customers_data;
+                var raw_html = '';
+                for (let i = 0; i < customers_data.length; i++) {
+                    // const element = array[i];
+                    raw_html += '<tr class="cust_info_row" id="' + customers_data[i].partner_code + '" partner-code="' + customers_data[i].partner_code + '" cust-name="' + customers_data[i].company_name + '">';
+                    raw_html += '<td>' + (i + 1) + '</td>';
+                    raw_html += '<td>' + customers_data[i].company_name + '</td>';
+                    raw_html += '<td style="text-align:center;" id="customer_edit_form"><i class="fas fa-cog"></i></td>';
+                    raw_html += '</tr>';
+                }
+                $('#customer_info_table tbody').append(raw_html);
+    }).catch(() => {
+        alert("接続用API設定を確認してください");
+    })
+    // cusrUrlCall.then(res => res.json() {
+    //     console.log(data.json())
+    // });
+    return 0;
     cusrUrlCall.then(res => res.json())
-        .then(
-            json => {
+        .then(json => {
+            console.log(json);
+            return 0;
                 // console.log(json.customers_data);
                 var customers_data = json.customers_data;
                 var raw_html = '';
@@ -1160,11 +1157,8 @@ function history() {
     var user_id = $('#user_id').val();
     var body_data = { user_id: user_id }
     var history_url = properties.get('history_url');
-    var history_API = requestUrl(history_url, body_data);
-    history_API.then(res => res.json())
-        .then(
-            json => {
-                histories = json.histories;
+    axios.post(history_url,body_data).then(({ data }) => {
+                histories = data.histories;
                 var history_html = '';
                 history_html += '<table class="table table-bordered" id="history_table">';
                 history_html += '<thead>';
@@ -1184,7 +1178,7 @@ function history() {
                     // console.log(history);
                     history_html += '<tr>';
                     history_html += '<td>' + i + '</td>';
-                    history_html += '<td>' + history.customer_name + '</td>';
+                    history_html += '<td>' + history.company_name + '</td>';
                     history_html += '<td>' + history.service_name + '</td>';
                     history_html += '<td>' + history.execute_name + '</td>';
                     history_html += '<td>' + history.execute_type + '</td>';
@@ -1211,7 +1205,7 @@ function history() {
                     // $('#first_tab').click();
                     // console.log("Clicked");
                 }, 1000);
-            }).catch(function(err) {
+            }).catch(()=> {
             alert("接続用API設定を確認してください");
         });
 

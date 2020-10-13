@@ -209,58 +209,58 @@ $(document).ready(function() {
         $("#add_customer_modal").modal("show");
     });
     // Edit customer form
-    $(document).on('click', '#customer_edit_form', function() {
-        $('#add_customer_message').html('');
-        $('#new_customer_create').html('更新');
-        $('#customer_delete').removeClass('d-none');
-        $('#customer_delete').addClass('d-block');
-        var customer_id = $(this).closest("tr").attr('id');
-        var customer_name = $(this).closest("tr").attr('cust-name');
-        var partner_code = $(this).closest("tr").attr('partner-code');
+    // $(document).on('click', '#customer_edit_form', function() {
+    //     $('#add_customer_message').html('');
+    //     $('#new_customer_create').html('更新');
+    //     $('#customer_delete').removeClass('d-none');
+    //     $('#customer_delete').addClass('d-block');
+    //     var customer_id = $(this).closest("tr").attr('id');
+    //     var customer_name = $(this).closest("tr").attr('cust-name');
+    //     var partner_code = $(this).closest("tr").attr('partner-code');
 
-        $("#customer_update_id").val(customer_id);
-        $("#customer_name").val(customer_name);
-        $("#partner_code").val(partner_code);
+    //     $("#customer_update_id").val(customer_id);
+    //     $("#customer_name").val(customer_name);
+    //     $("#partner_code").val(partner_code);
 
-        // console.log(customer_id);
-        $("#add_customer_modal").modal("show");
-    });
+    //     // console.log(customer_id);
+    //     $("#add_customer_modal").modal("show");
+    // });
     // Delete customer 
-    $(document).on('click', '#customer_delete', function() {
-        var customer_id = $("#customer_update_id").val();
-        var delete_customer_url = properties.get('delete_customer_url');
-        var body_data = { customer_id: customer_id }
+    // $(document).on('click', '#customer_delete', function() {
+    //     var customer_id = $("#customer_update_id").val();
+    //     var delete_customer_url = properties.get('delete_customer_url');
+    //     var body_data = { customer_id: customer_id }
 
-        var apiDataFunc = requestUrl(delete_customer_url, body_data);
-        apiDataFunc.then(res => res.json())
-            .then(
-                json => {
-                    // console.log(json);
-                    if (json.status_code == 200) {
-                        alertMessageClassRemove(json.class_name, json.message, 'alert-danger');
-                        $("#add_customer_modal").modal("hide");
-                        $('#' + customer_id).remove();
-                        var rows = $('#customer_info_table >tbody >tr');
-                        var rowCount = rows.length;
-                        for (var row = 0; row < rowCount; row++) {
-                            $(rows[row]).find("td:eq(0)").html((row + 1));
-                        }
-                        $('.cust_info_row.bg-secondary').removeClass("bg-secondary text-white");
+    //     var apiDataFunc = requestUrl(delete_customer_url, body_data);
+    //     apiDataFunc.then(res => res.json())
+    //         .then(
+    //             json => {
+    //                 // console.log(json);
+    //                 if (json.status_code == 200) {
+    //                     alertMessageClassRemove(json.class_name, json.message, 'alert-danger');
+    //                     $("#add_customer_modal").modal("hide");
+    //                     $('#' + customer_id).remove();
+    //                     var rows = $('#customer_info_table >tbody >tr');
+    //                     var rowCount = rows.length;
+    //                     for (var row = 0; row < rowCount; row++) {
+    //                         $(rows[row]).find("td:eq(0)").html((row + 1));
+    //                     }
+    //                     $('.cust_info_row.bg-secondary').removeClass("bg-secondary text-white");
 
-                        var customer_id_new = $("#customer_info_table>tbody>tr:first").attr('id');
-                        var customer_name_new = $("#customer_info_table>tbody>tr:first").attr('cust-name');
-                        var partner_code_new = $("#customer_info_table>tbody>tr:first").attr('partner-code');
-                        $('#customer_name_view').html(customer_name_new);
-                        $('#partner_code_view').html(partner_code_new);
-                        $('#customer_id_for_schedule').val(customer_id_new);
-                        $('#' + customer_id_new).addClass('bg-secondary text-white');
-                        // rpa_schedule_show(customer_id_new);
-                        serviceNameShow(customer_id_new)
-                    }
-                }).catch(function(err) {
-                alert("接続用API設定を確認してください");
-            });
-    });
+    //                     var customer_id_new = $("#customer_info_table>tbody>tr:first").attr('id');
+    //                     var customer_name_new = $("#customer_info_table>tbody>tr:first").attr('cust-name');
+    //                     var partner_code_new = $("#customer_info_table>tbody>tr:first").attr('partner-code');
+    //                     $('#customer_name_view').html(customer_name_new);
+    //                     $('#partner_code_view').html(partner_code_new);
+    //                     $('#customer_id_for_schedule').val(customer_id_new);
+    //                     $('#' + customer_id_new).addClass('bg-secondary text-white');
+    //                     // rpa_schedule_show(customer_id_new);
+    //                     serviceNameShow(customer_id_new)
+    //                 }
+    //             }).catch(function(err) {
+    //             alert("接続用API設定を確認してください");
+    //         });
+    // });
 
     // Row add in schedule 
     $(document).on('click', '#add_new_date_row', function() {
@@ -325,11 +325,11 @@ $(document).ready(function() {
         var day_array = new Array();
 
         var user_id = $('#user_id').val();
-        var customer_id = $('#customer_id_for_schedule').val();
+        var cmn_connect_id = $('#cmn_connect_id_for_schedule').val();
         var service_id = $('#service_id_popup').val();
         // console.log(service_id);
         // return 0;
-        if (customer_id == 0) {
+        if (cmn_connect_id == 0) {
             scheduleMessageClassRemove('alert-danger', "取引先を選択してください。", 'alert-success');
             return false;
         }
@@ -432,44 +432,22 @@ $(document).ready(function() {
         // console.log(data_array)
         // return 0;
         var set_schedule_data_url = properties.get('set_schedule_data_url');
-        var url_data = { user_id: user_id, customer_id: customer_id, service_id: service_id, data_array: data_array, time_array: time_array, time_sp_array: time_sp_array, last_day_array: last_day_array, day_array: day_array }
+        var url_data = { user_id: user_id, cmn_connect_id: cmn_connect_id, service_id: service_id, data_array: data_array, time_array: time_array, time_sp_array: time_sp_array, last_day_array: last_day_array, day_array: day_array }
             // Api Data 
-            // const request = require('request');
-            // $.getJSON("info.json", function(data) {
-            // console.log(data)
-            // console.log(url_data);
-            // return 0;
-        request({
-            body: url_data,
-            followAllRedirects: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            method: 'POST',
-            url: set_schedule_data_url,
-            json: true
-        }, callback);
-        // })
-
-        function callback(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                // console.log(body);
-                // return 0;
+            axios.post(set_schedule_data_url, url_data).then(({ data }) => {
                 $('#rpa_schedule_message').removeClass('alert-danger');
-                $('#rpa_schedule_message').addClass(body.class_name);
-                $('#rpa_schedule_message').html(body.message);
+                $('#rpa_schedule_message').addClass(data.class_name);
+                $('#rpa_schedule_message').html(data.message);
                 rpa_schedule_show(service_id);
-            } else {
+            }).catch(()=>{
                 alert("接続用API設定を確認してください");
-            }
-        }
+            });
 
     });
 
     // File download interval
 
-    $("#check_folder_path").change(function() {
+    $("#check_folder_path").on('change',function() {
         try {
             var sourceVal = document.getElementById("check_folder_path").files[0].path;
             $("#check_folder_path_box").val(sourceVal);
@@ -513,7 +491,7 @@ $(document).ready(function() {
         var path_execution_flag = $("#path_execution_flag").is(':checked');
         // var shipment_path_execute = $("#shipment_path_execute").is(':checked');
         var user_id = $('#user_id').val();
-        var customer_id = $('#customer_id_for_schedule').val();;
+        var cmn_connect_id = $('#cmn_connect_id_for_schedule').val();;
         var service_id = $('#service_id_popup').val();;
         var file_source_path = $("#check_folder_path_box").val();
         var file_move_path = $("#move_folder_path_box").val();
@@ -540,36 +518,14 @@ $(document).ready(function() {
             return false;
         }
 
-        var data = { user_id: user_id, customer_id: customer_id, service_id: service_id, path_execution_flag: path_execution_flag, file_source_path: file_source_path, file_move_path: file_move_path, api_url: api_url, api_folder_path: api_folder_path }
+        var url_data = { user_id: user_id, cmn_connect_id: cmn_connect_id, service_id: service_id, path_execution_flag: path_execution_flag, file_source_path: file_source_path, file_move_path: file_move_path, api_url: api_url, api_folder_path: api_folder_path }
         var set_file_path_url = properties.get('set_file_path');
-        // console.log(data);
-        // return 0;
-        // var url = 'set_file_path';
-        // const request = require('request');
-        request({
-            body: data,
-            followAllRedirects: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            method: 'POST',
-            url: set_file_path_url,
-            json: true
-        }, callback);
-
-        function callback(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                scheduleMessageClassRemove(body.class_name, body.message, 'alert-danger')
-                rpa_schedule_show(service_id);
-            } else {
-                // return "Please check your API url or internet connection";
-                // alert("接続用API設定を確認してください");
-                console.log("接続用API設定を確認してください");
-            }
-        }
-        // console.log(urlCall(data, url));
-        // alert(user_id);
+        axios.post(set_file_path_url, url_data).then(({ data }) => {
+            scheduleMessageClassRemove(data.class_name, data.message, 'alert-danger')
+            rpa_schedule_show(service_id);
+        }).catch(()=>{
+            console.log("接続用API設定を確認してください");
+        });
     });
 
     $(document).on('click', '#job_save', function() {
@@ -577,7 +533,8 @@ $(document).ready(function() {
         var job_execution_flag = $("#job_execution_flag").is(':checked');
         var api_execute = $("#api_execute").is(':checked');
         var batch_execute = $("#batch_execute").is(':checked');
-        var api_path = $("#api_path").val();
+        // var api_path = $("#api_path").val();
+        var cmn_scenario_id = $("#cmn_scenario_id").val();
         var batch_file_path = $("#batch_file_path_box").val();
         var service_id = $('#service_id_popup').val();
         var job_update_id = $('#job_update_id').val();
@@ -601,22 +558,17 @@ $(document).ready(function() {
             execution = 'api';
         }
         var set_job_data_url = properties.get('set_job_data_url');
-        body_data = { service_id: service_id, job_update_id: job_update_id, api_path: api_path, batch_file_path: batch_file_path, execution: execution, job_execution_flag: job_execution_flag }
+        body_data = { service_id: service_id, job_update_id: job_update_id, cmn_scenario_id: cmn_scenario_id, batch_file_path: batch_file_path, execution: execution, job_execution_flag: job_execution_flag }
+        axios.post(set_job_data_url, body_data).then(({ data }) => {
+            if (data.status_code == 200) {
+                scheduleMessageClassRemove(data.class_name, data.message, 'alert-danger')
+                rpa_schedule_show(service_id);
+            }
+        }).catch(()=>{
+            alert("接続用API設定を確認してください");
+        });
 
-        var jobApiData = requestUrl(set_job_data_url, body_data);
-        jobApiData.then(res => res.json())
-            .then(
-                json => {
-                    // console.log(json);
-                    if (json.status_code == 200) {
-                        scheduleMessageClassRemove(json.class_name, json.message, 'alert-danger')
-                        rpa_schedule_show(service_id);
-                    }
-                }).catch(function(err) {
-                console.log(err);
-                alert("接続用API設定を確認してください");
-                // scheduleMessageClassRemove('alert-danger', 'Please check your API URL or Internet connection', 'alert-success');
-            });
+        
         // console.log("Service_id: " + service_id);
         // console.log("Execution: " + execution);
         // console.log("api_execute: " + api_execute);
@@ -624,107 +576,108 @@ $(document).ready(function() {
         // console.log(job_execution_flag);
     })
 
-    $(document).on('click', '#new_customer_create', function() {
+    // $(document).on('click', '#new_customer_create', function() {
 
-        var customer_id = $("#customer_update_id").val();
-        var customer_name = $("#customer_name").val();
-        var partner_code = $("#partner_code").val();
-        var user_id = $('#user_id').val();
-        var customer_name_len = customer_name.length;
-        var partner_code_len = partner_code.length;
+    //     var customer_id = $("#customer_update_id").val();
+    //     var customer_name = $("#customer_name").val();
+    //     var partner_code = $("#partner_code").val();
+    //     var user_id = $('#user_id').val();
+    //     var customer_name_len = customer_name.length;
+    //     var partner_code_len = partner_code.length;
 
-        if (customer_name == '' || partner_code == '') {
-            $('#add_customer_message').addClass('alert-danger');
-            $('#add_customer_message').html('すべての欄を入力してください');
-            return 0;
-        }
-        // if ($.isNumeric(customer_name)) {
-        //     console.log("Numeric");
-        // } else {
-        //     console.log("Not");
-        // }
-        // return 0;
-        if (customer_name_len > 100) {
-            $('#add_customer_message').addClass('alert-danger');
-            $('#add_customer_message').html('Customer name must be less than 100 character');
-            return 0;
-        }
-        if (partner_code_len > 50) {
-            $('#add_customer_message').addClass('alert-danger');
-            $('#add_customer_message').html('Partner code must be less than 50 character');
-            return 0;
-        }
-        // return 0;
-        var add_customer_url = properties.get('add_customer_url');
-        var body = { user_id: user_id, customer_id: customer_id, customer_name: customer_name, partner_code: partner_code }
+    //     if (customer_name == '' || partner_code == '') {
+    //         $('#add_customer_message').addClass('alert-danger');
+    //         $('#add_customer_message').html('すべての欄を入力してください');
+    //         return 0;
+    //     }
+    //     // if ($.isNumeric(customer_name)) {
+    //     //     console.log("Numeric");
+    //     // } else {
+    //     //     console.log("Not");
+    //     // }
+    //     // return 0;
+    //     if (customer_name_len > 100) {
+    //         $('#add_customer_message').addClass('alert-danger');
+    //         $('#add_customer_message').html('Customer name must be less than 100 character');
+    //         return 0;
+    //     }
+    //     if (partner_code_len > 50) {
+    //         $('#add_customer_message').addClass('alert-danger');
+    //         $('#add_customer_message').html('Partner code must be less than 50 character');
+    //         return 0;
+    //     }
+    //     // return 0;
+    //     var add_customer_url = properties.get('add_customer_url');
+    //     var body = { user_id: user_id, customer_id: customer_id, customer_name: customer_name, partner_code: partner_code }
 
-        var apiData = requestUrl(add_customer_url, body);
-        apiData.then(res => res.json())
-            .then(
-                json => {
-                    // console.log(json);
-                    // return 0;
-                    var response = json;
-                    $('#add_customer_message').removeClass('alert-danger');
-                    $('#add_customer_message').addClass(response.class_name);
-                    $('#add_customer_message').html(response.message);
-                    if (response.flag == 0) {
-                        if (response.status_code == 200) {
-                            $('.cust_info_row.bg-secondary').removeClass("bg-secondary text-white");
-                            // $('#add_customer_form')[0].reset();
-                            var rows_numbers = $("#customer_info_table tbody tr").length;
-                            var raw_html = '';
-                            raw_html += '<tr class="cust_info_row bg-secondary text-white" id="' + response.lst_customer_id + '" partner-code="' + partner_code + '" cust-name="' + customer_name + '">';
-                            raw_html += '<td>' + (rows_numbers + 1) + '</td>';
-                            raw_html += '<td>' + customer_name + '</td>';
-                            raw_html += '<td style="text-align:center;" id="customer_edit_form"><i class="fas fa-cog"></i></td>';
-                            raw_html += '</tr>';
-                            $('#customer_info_table tbody').append(raw_html);
-                            $('#customer_name_view').html(customer_name);
-                            $('#partner_code_view').html(partner_code);
-                            $('#customer_id_for_schedule').val(response.lst_customer_id);
-                            // scheduleMessageClassRemove(response.class_name, response.message, 'alert-danger');
-                            alertMessageClassRemove(response.class_name, response.message, 'alert-danger');
-                            // $('#rpa_schedule_message').html(response.message);
-                            // $('#rpa_schedule_message').addClass(response.class_name);
-                            $("#add_customer_modal").modal("hide");
-                            // rpa_schedule_show(response.lst_customer_id);
-                            serviceNameShow(response.lst_customer_id)
-                        }
+    //     var apiData = requestUrl(add_customer_url, body);
+    //     apiData.then(res => res.json())
+    //         .then(
+    //             json => {
+    //                 // console.log(json);
+    //                 // return 0;
+    //                 var response = json;
+    //                 $('#add_customer_message').removeClass('alert-danger');
+    //                 $('#add_customer_message').addClass(response.class_name);
+    //                 $('#add_customer_message').html(response.message);
+    //                 if (response.flag == 0) {
+    //                     if (response.status_code == 200) {
+    //                         $('.cust_info_row.bg-secondary').removeClass("bg-secondary text-white");
+    //                         // $('#add_customer_form')[0].reset();
+    //                         var rows_numbers = $("#customer_info_table tbody tr").length;
+    //                         var raw_html = '';
+    //                         raw_html += '<tr class="cust_info_row bg-secondary text-white" id="' + response.lst_customer_id + '" partner-code="' + partner_code + '" cust-name="' + customer_name + '">';
+    //                         raw_html += '<td>' + (rows_numbers + 1) + '</td>';
+    //                         raw_html += '<td>' + customer_name + '</td>';
+    //                         raw_html += '<td style="text-align:center;" id="customer_edit_form"><i class="fas fa-cog"></i></td>';
+    //                         raw_html += '</tr>';
+    //                         $('#customer_info_table tbody').append(raw_html);
+    //                         $('#customer_name_view').html(customer_name);
+    //                         $('#partner_code_view').html(partner_code);
+    //                         $('#customer_id_for_schedule').val(response.lst_customer_id);
+    //                         // scheduleMessageClassRemove(response.class_name, response.message, 'alert-danger');
+    //                         alertMessageClassRemove(response.class_name, response.message, 'alert-danger');
+    //                         // $('#rpa_schedule_message').html(response.message);
+    //                         // $('#rpa_schedule_message').addClass(response.class_name);
+    //                         $("#add_customer_modal").modal("hide");
+    //                         // rpa_schedule_show(response.lst_customer_id);
+    //                         serviceNameShow(response.lst_customer_id)
+    //                     }
 
-                    } else if (response.flag == 1) {
-                        if (response.status_code == 200) {
-                            $('#' + response.lst_customer_id).find("td:eq(1)").text(customer_name);
-                            $('#' + response.lst_customer_id).attr('cust-name', customer_name);;
-                            $('#' + response.lst_customer_id).attr('partner-code', partner_code);;
-                            $('#customer_name_view').html(customer_name);
-                            $('#partner_code_view').html(partner_code);
+    //                 } else if (response.flag == 1) {
+    //                     if (response.status_code == 200) {
+    //                         $('#' + response.lst_customer_id).find("td:eq(1)").text(customer_name);
+    //                         $('#' + response.lst_customer_id).attr('cust-name', customer_name);;
+    //                         $('#' + response.lst_customer_id).attr('partner-code', partner_code);;
+    //                         $('#customer_name_view').html(customer_name);
+    //                         $('#partner_code_view').html(partner_code);
 
-                            alertMessageClassRemove(response.class_name, response.message, 'alert-danger');
-                            $("#add_customer_modal").modal("hide");
-                        }
-                    }
+    //                         alertMessageClassRemove(response.class_name, response.message, 'alert-danger');
+    //                         $("#add_customer_modal").modal("hide");
+    //                     }
+    //                 }
 
-                }).catch(function(err) {
-                alert("接続用API設定を確認してください");
-            });
-    });
+    //             }).catch(function(err) {
+    //             alert("接続用API設定を確認してください");
+    //         });
+    // });
 
     $(document).on('click', '.cust_info_row', function() {
-        var customer_info_id = $(this).attr("id");
+        var cmn_connect_id = $(this).attr("cmn_connect_id");
+        var adm_user_id = $(this).attr("adm_user_id");
         var partner_code = $(this).attr("partner-code");
-        var customer_name = $(this).attr("cust-name");
-        $('#customer_name_view').html(customer_name);
+        var company_name = $(this).attr("company-name");
+        $('#company_name_view').html(company_name);
         $('#partner_code_view').html(partner_code);
-        $('#customer_id_for_schedule').val(customer_info_id);
+        $('#cmn_connect_id_for_schedule').val(cmn_connect_id);
         $('.cust_info_row.bg-secondary').removeClass("bg-secondary text-white");
         $(this).addClass('bg-secondary text-white');
         $('#alert_message').html('');
-        serviceNameShow(customer_info_id)
+        serviceNameShow({cmn_connect_id:cmn_connect_id,adm_user_id:adm_user_id})
             // var customer_id = $("#customer_info_table>tbody>tr:first").attr('id');
             // rpa_schedule_show(service_id);
     });
-    $("#area_refresh,#sub_area_refresh").click(function() {
+    $("#area_refresh,#sub_area_refresh").on('click',function() {
         areRefresh();
     });
 
@@ -742,7 +695,7 @@ $(document).ready(function() {
 
         var service_id = $("#service_update_id").val();
         var service_name = $("#service_name").val();
-        var customer_id = $('#customer_id_for_schedule').val();
+        var cmn_connect_id = $('#cmn_connect_id_for_schedule').val();
         var service_name_len = service_name.length;
         // console.log(customer_id);
         // return 0;
@@ -758,20 +711,16 @@ $(document).ready(function() {
             return 0;
         }
         var add_service_url = properties.get('add_service_url');
-        var body = { user_id: user_id, customer_id: customer_id, service_id: service_id, service_name: service_name }
-
-        var serviceApiData = requestUrl(add_service_url, body);
-        serviceApiData.then(res => res.json())
-            .then(
-                json => {
-                    // console.log(json);
-                    // return 0;
-                    var response = json;
+        var body = { user_id: user_id, cmn_connect_id: cmn_connect_id, service_id: service_id, service_name: service_name }
+        var serviceApiData = axios.post(add_service_url, body);
+        serviceApiData.then(({ data }) => {
+            console.log(data);
+            var response = data;
                     $('#add_service_message').removeClass('alert-danger');
-                    $('#add_service_message').addClass(response.class_name);
-                    $('#add_service_message').html(response.message);
-                    if (response.flag == 0) {
-                        if (response.status_code == 200) {
+                    $('#add_service_message').addClass(data.class_name);
+                    $('#add_service_message').html(data.message);
+                    if (data.flag == 0) {
+                        if (data.status_code == 200) {
                             $('.service_info_row.bg-secondary').removeClass("bg-secondary text-white");
                             // $('#add_customer_form')[0].reset();
                             var rows_numbers = $("#service_info_table tbody tr").length;
@@ -783,33 +732,33 @@ $(document).ready(function() {
                                 rows_numbers = rows_numbers + 1;
                             }
                             var raw_html = '';
-                            raw_html += '<tr class="service_info_row remove_val="0" bg-secondary text-white" service-id="' + response.lst_service_id + '" service-name="' + service_name + '">';
+                            raw_html += '<tr class="service_info_row remove_val="0" bg-secondary text-white" service-id="' + data.lst_service_id + '" service-name="' + service_name + '">';
                             raw_html += '<td>' + (rows_numbers) + '</td>';
                             raw_html += '<td id="service_edit_form">' + service_name + '</td>';
                             raw_html += '<td style="text-align:center;" id="service_execution"><i class="far fa-play-circle" style="font-size:30px;"></i></td>';
                             raw_html += '<td style="text-align:center;" id="service_configureation"><i class="fas fa-cog" style="font-size:30px;"></i></td>';
                             raw_html += '</tr>';
                             $('#service_info_table tbody').append(raw_html);
-                            alertMessageClassRemove(response.class_name, response.message, 'alert-danger');
+                            alertMessageClassRemove(data.class_name, data.message, 'alert-danger');
                             $("#add_service_modal").modal("hide");
-                            // rpa_schedule_show(response.lst_service_id);
+                            // rpa_schedule_show(data.lst_service_id);
                         }
 
-                    } else if (response.flag == 1) {
-                        if (response.status_code == 200) {
+                    } else if (data.flag == 1) {
+                        if (data.status_code == 200) {
                             var clicked_row = $("#clicked_row_number").val();
                             // $('#service_info_table tr:eq(1)').find("td:eq(1)").text(service_name);
                             $('#service_info_table tbody tr:eq(' + (clicked_row) + ')').find("td:eq(1)").text(service_name);
                             $('#service_info_table tbody tr:eq(' + (clicked_row) + ')').attr('service-name', service_name);
 
-                            alertMessageClassRemove(response.class_name, response.message, 'alert-danger');
+                            alertMessageClassRemove(data.class_name, data.message, 'alert-danger');
                             $("#add_service_modal").modal("hide");
                         }
                     }
 
-                }).catch(function(err) {
-                alert("接続用API設定を確認してください");
-            });
+        }).catch(()=>{
+            alert("接続用API設定を確認してください");
+        });
     });
 
     $(document).on('click', '.service_info_row', function() {
@@ -883,6 +832,7 @@ $(document).ready(function() {
         // $(this).closest('tr').unbind('click');
         var service_id = $(this).closest('tr').attr('service-id');
         // console.log(service_id);
+        // return 0;
         $('#service_id_popup').val(service_id);
         rpa_schedule_show(service_id);
         $("#schedule_modal").modal("show");

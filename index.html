@@ -65,12 +65,12 @@
                                                 <table class="table table-bordered">
                                                     <tr>
                                                         <td>取引先名</td>
-                                                        <td id="customer_name_view"></td>
+                                                        <td id="company_name_view"></td>
                                                     </tr>
                                                     <tr>
                                                         <td>取引先コード</td>
                                                         <td id="partner_code_view"></td>
-                                                        <input type="hidden" id="customer_id_for_schedule" value="0">
+                                                        <input type="hidden" id="cmn_connect_id_for_schedule" value="0">
                                                     </tr>
                                                 </table>
                                             </div>
@@ -90,7 +90,7 @@
                                                     <thead>
                                                         <th>No</th>
                                                         <th>取引先名</th>
-                                                        <th>設定</th>
+                                                        <!-- <th>設定</th> -->
                                                     </thead>
                                                     <tbody>
                                                         <!-- <tr class="cust_info_row" id=""></tr> -->
@@ -391,6 +391,15 @@
 
                             <div class="form-group">
                                 <div class="row">
+                                    <!-- <div class="col-md-12">
+                                        <table class="table" id="job_show_table">
+                                            <thead>
+                                                <th>Execution</th>
+                                                <th>Senario List</th>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div> -->
                                     <div class="col-md-1">
                                         <input id="api_execute" name="execute" type="radio" class="form-control" style="text-align: left !important;">
                                     </div>
@@ -398,8 +407,9 @@
                                         <label class="control-label path_level" for="api_path">API</label>
                                     </div>
                                     <div class="col-md-9">
-                                        <div class="upload-btn-wrapper">
-                                            <input type="text" onclick="$('#api_execute').click();" style="width: 100% !important;" class="file_path_level control-label  text-left" id="api_path">
+                                        <input type="hidden" name="cmn_scenario_id" id="cmn_scenario_id">
+                                        <div class="upload-btn-wrapper scenario_list_show" style="line-height: 37px !important;">
+                                            <!-- <input type="text" onclick="$('#api_execute').click();" style="width: 100% !important;" class="file_path_level control-label  text-left" id="api_path"> -->
                                         </div>
                                     </div>
                                 </div>
@@ -415,7 +425,6 @@
                                     <div class="col-md-9">
                                         <div class="upload-btn-wrapper">
                                             <input type="text" class="file_path_level control-label  text-left" id="batch_file_path_box" onclick="$('#batch_execute').click();">
-                                            <!-- <label class="file_path_level control-label  text-right" id="file_move_path_box">ファイル名</label> -->
                                             <button class="btn  browse_btn" onclick="$('#batch_file_path').click();">参照</button>
                                             <input type="file" onclick="$('#batch_execute').click();" class="file_input" id="batch_file_path" accept=".bat" multiple mozdirectory />
                                         </div>
@@ -423,7 +432,7 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-sm-3"></div>
+                                <!-- <div class="col-sm-3"></div> -->
                                 <div class="col-sm-4">
                                     <button class="btn btn-primary float-left" style="margin-right: 10px;" id="job_save">保存</button>
                                 </div>

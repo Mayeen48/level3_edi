@@ -10,7 +10,7 @@
 function time_match() {
     var time_array = new Array();
     // var day_array = new Array();
-    var customer_name = $('#customer_name_view').html();
+    var customer_name = $('#company_name_view').html();
     // var user_id = $('#user_id').val();
     // var customer_id = $('#customer_id_for_schedule').val();
     var service_id = $("#service_info_table > tbody > tr:eq(0)").attr('service-id');
@@ -23,13 +23,11 @@ function time_match() {
     if (service_id) {
         var schedule_time_data_url = properties.get('schedule_time_data_url');
         var schedule_body_data = { service_id: service_id }
-        requestUrl(schedule_time_data_url, schedule_body_data).then(res => res.json())
-            .then(
-                json => {
-                    var schedule_time_data = json.schedule_time_data;
+        axios.post(schedule_time_data_url, schedule_body_data).then(({ data }) => {
+            var schedule_time_data = data.schedule_time_data;
                     if (schedule_time_data.length) {
                         schedule_time_data.forEach(element => {
-                            time_array.push([element.time, element.schedule_id, element.weekday]);
+                            time_array.push([element.time, element.lv3_trigger_schedule_id, element.weekday]);
                         });
                         var car_time = cur_time();
                         var dt = new Date();
@@ -61,13 +59,9 @@ function time_match() {
                         console.log("Please add schedule");
                         // alertMessageClassRemove('alert-danger', 'Please add schedule', 'alert-success')
                     }
-
-                    // console.log(time_array);
-                }).catch(function(err) {
-                alert("接続用API設定を確認してください");
-            });
-
-        return 0;
+        }).catch(()=>{
+            alert("接続用API設定を確認してください");
+        });
     } else {
         console.log("No service id found");
     }
@@ -86,11 +80,8 @@ function service1Process(service_id = null, process_type = "Auto") {
     }
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = { service_id: service_id, service: 1 }
-
-    requestUrl(get_service_data_url, body_data).then(res => res.json())
-        .then(
-            json => {
-                var service1 = json.service1;
+    axios.post(get_service_data_url, body_data).then(({ data }) => {
+        var service1 = data.service1;
                 // console.log(json);
                 // console.log(service1);
                 if (!jQuery.isEmptyObject(service1)) {
@@ -108,9 +99,9 @@ function service1Process(service_id = null, process_type = "Auto") {
                     console.log("Order1 setup not completed yet");
                     executionErrorLogo(0)
                 }
-            }).catch(function(err) {
-            alert("接続用API設定を確認してください in order1");
-        });
+    }).catch(()=>{
+        alert("接続用API設定を確認してください");
+    });
 }
 
 function service1Execution(service1, user_id, process_type) {
@@ -122,7 +113,7 @@ function service1Execution(service1, user_id, process_type) {
                 order_history_data = {
                     process_type: process_type,
                     user_id: user_id,
-                    service_id: (service1.service_id),
+                    service_id: (service1.lv3_service_id),
                     status: 'Error',
                     execute_name: '発注データ',
                     history_message: "May be batch file or path is not valid for order1"
@@ -135,7 +126,7 @@ function service1Execution(service1, user_id, process_type) {
                 order_history_data = {
                     process_type: process_type,
                     user_id: user_id,
-                    service_id: (service1.service_id),
+                    service_id: (service1.lv3_service_id),
                     status: 'Success',
                     execute_name: '発注データ',
                     history_message: "Order1 Job Executed Successfully"
@@ -150,7 +141,7 @@ function service1Execution(service1, user_id, process_type) {
         order_history_data = {
             process_type: process_type,
             user_id: user_id,
-            service_id: (service1.service_id),
+            service_id: (service1.lv3_service_id),
             status: 'Error',
             execute_name: '発注データ',
             history_message: "API not allow for this job in order1"
@@ -159,11 +150,16 @@ function service1Execution(service1, user_id, process_type) {
         executionErrorLogo(0);
     }
 }
+// axios.post(get_service_data_url, body_data).then(({ data }) => {
+    
+// }).catch(()=>{
+//     alert("接続用API設定を確認してください");
+// });
 // Service2
 function service2Process(service_id = null, process_type = "Auto") {
     // console.log("Job2 executing...");
     executionStartLogo(1)
-    var customer_name = $('#customer_name_view').html();
+    var customer_name = $('#company_name_view').html();
     var user_id = $('#user_id').val();
     // var order_history_data = '';
     var service_id = $("#service_info_table > tbody > tr:eq(1)").attr('service-id')
@@ -174,29 +170,26 @@ function service2Process(service_id = null, process_type = "Auto") {
     }
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = { service_id: service_id, service: 2 }
-
-    requestUrl(get_service_data_url, body_data).then(res => res.json())
-        .then(
-            json => {
-                var service2 = json.service2;
-                if (!jQuery.isEmptyObject(service2)) {
-                    if (process_type == "Manual") {
-                        service2Execution(service2, user_id, process_type)
-                    } else {
-                        if (service2.path_execution_flag) {
-                            service2Execution(service2, user_id, process_type)
-                        } else {
-                            executionEndLogo(1)
-                            console.log("Path execution off for order2");
-                        }
-                    }
+    axios.post(get_service_data_url, body_data).then(({ data }) => {
+        var service2 = data.service2;
+        if (!jQuery.isEmptyObject(service2)) {
+            if (process_type == "Manual") {
+                service2Execution(service2, user_id, process_type)
+            } else {
+                if (service2.path_execution_flag) {
+                    service2Execution(service2, user_id, process_type)
                 } else {
-                    console.log("Order2 setup not completed yet");
-                    executionErrorLogo(1)
+                    executionEndLogo(1)
+                    console.log("Path execution off for order2");
                 }
-            }).catch(function(err) {
-            alert("接続用API設定を確認してください in order2");
-        });
+            }
+        } else {
+            console.log("Order2 setup not completed yet");
+            executionErrorLogo(1)
+        }
+    }).catch(()=>{
+        alert("接続用API設定を確認してください in order2");
+    });
     // $("#service_info_table > tbody > tr").each(function() {
     //     service_id_all.push($(this).attr('service-id'));
     // });
@@ -230,7 +223,7 @@ function service2Execution(service2, user_id, process_type) {
                 order_history_data = {
                     process_type: process_type,
                     user_id: user_id,
-                    service_id: (service2.service_id),
+                    service_id: (service2.lv3_service_id),
                     status: 'Error',
                     execute_name: '発注データ',
                     history_message: "May be batch file or path is not valid for order2"
@@ -243,7 +236,7 @@ function service2Execution(service2, user_id, process_type) {
                 order_history_data = {
                     process_type: process_type,
                     user_id: user_id,
-                    service_id: (service2.service_id),
+                    service_id: (service2.lv3_service_id),
                     status: 'Success',
                     execute_name: '発注データ',
                     history_message: "Order2 Job Executed Successfully"
@@ -260,7 +253,7 @@ function service2Execution(service2, user_id, process_type) {
                 order_history_data = {
                     process_type: process_type,
                     user_id: user_id,
-                    service_id: (service2.service_id),
+                    service_id: (service2.lv3_service_id),
                     status: 'Error',
                     execute_name: '発注データ',
                     history_message: "May be check folder path is not valid or it is empty for order2"
@@ -791,35 +784,20 @@ function time_process(time) {
     return time_stamp_time;
 }
 
-
+// API Data 
 function rpa_schedule_show(service_id) {
     // console.log("In function: " + customer_id);
     // const request = require('request');
+    // console.log(service_id);
     var user_id = $('#user_id').val();
     var user_data = { user_id: user_id, service_id: service_id };
     var get_schedule_data_url = properties.get('get_schedule_data_url');
-    // $.getJSON("info.json", function(data) {
-    // console.log(data)
-    request({
-        body: user_data,
-        followAllRedirects: true,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-        method: 'POST',
-        url: get_schedule_data_url,
-        json: true
-    }, callback);
-    // })
-
-    function callback(error, response, body) {
-        if (!error && response.statusCode == 200) {
-            // console.log(body);
-            // return 0;
-            var file_path_info = body.file_path_info;
-            var schedule_array = body.schedule_array;
-            var job_info = body.job_info;
+    var getRpaData = axios.post(get_schedule_data_url, user_data);
+    getRpaData.then(({ data }) => {
+        // console.log(data);
+        var file_path_info = data.file_path_info;
+            var schedule_array = data.schedule_array;
+            var job_info = data.job_info;
             // console.log(schedule_array[1].day);
             // return 0;
             if (schedule_array.length != 0) {
@@ -869,7 +847,8 @@ function rpa_schedule_show(service_id) {
                 $('#date_specification_table tbody').html('<tr><td colspan="5"><input type="hidden" id="no_data_sp" value="0">データ無し</td></tr>');
             }
             // console.log(file_path_info.length);
-            if (file_path_info != null) {
+            // file_path_info != null
+            if (file_path_info.length!=0) {
                 if (file_path_info['path_execution_flag'] == 1) {
                     $("#path_execution_flag").prop("checked", true);
                 } else {
@@ -894,18 +873,24 @@ function rpa_schedule_show(service_id) {
                 $('#api_url').val('');
                 $('#api_folder_path_box').val('');
             }
-            if (job_info != null) {
+            // job_info != null ||
+            if ( job_info.length!=0) {
                 if (job_info['job_execution_flag'] == 1) {
                     $("#job_execution_flag").prop("checked", true);
                 } else {
                     $("#job_execution_flag").prop("checked", false);
                 }
                 if (job_info['execution'] == 'api') {
-                    $("#api_execute").prop("checked", true);
+                    // var scenario_html="";
+                    // scenario_html+="<ul>"
+                    // scenario_html+='<li>'+job_info.name+'</li>'
+                    // scenario_html+="</ul>"
+                    $(".scenario_list_show").html(job_info.name);
                 } else if (job_info['execution'] == 'batch') {
                     $("#batch_execute").prop("checked", true);
                 }
-                $('#job_update_id').val(job_info['job_id']);
+                $("#cmn_scenario_id").val(job_info['cmn_scenario_id']);
+                $('#job_update_id').val(job_info['lv3_job_id']);
                 $('#api_path').val(job_info['api_path']);
                 $('#batch_file_path_box').val(job_info['batch_file_path']);
                 // $('#shipment_file_path_box').val(file_path_info['shipment_path']);
@@ -913,9 +898,11 @@ function rpa_schedule_show(service_id) {
             } else {
                 $("#job_update_id").val('');
                 $("#job_execution_flag").prop("checked", false);
-                $("#api_execute").prop("checked", false);
+                $(".scenario_list_show").html('No Scenario found');
+                $("#cmn_scenario_id").val('');
+                // $("#api_execute").prop("checked", false);
                 $("#batch_execute").prop("checked", false);
-                $('#api_path').val('');
+                // $('#api_path').val('');
                 $('#batch_file_path_box').val('');
                 // $('#shipment_file_path_box').val('');
             }
@@ -924,16 +911,10 @@ function rpa_schedule_show(service_id) {
             // if (modal_val == "modal_show") {
             //     $('#schedule_modal').modal('show');
             // }
-        } else {
+        }).catch(()=>{
             // console.log("Please check your API url or internet connection");
             console.log("接続用API設定を確認してください");
-
-        }
-
-    };
-
-    // API Data 
-
+        });
 }
 
 function user_login() {
@@ -1093,41 +1074,17 @@ function customerInfo(user_id = null) {
                 var raw_html = '';
                 for (let i = 0; i < customers_data.length; i++) {
                     // const element = array[i];
-                    raw_html += '<tr class="cust_info_row" id="' + customers_data[i].partner_code + '" partner-code="' + customers_data[i].partner_code + '" cust-name="' + customers_data[i].company_name + '">';
+                    raw_html += '<tr class="cust_info_row" cmn_connect_id="' + customers_data[i].cmn_connect_id + '" adm_user_id="' + customers_data[i].adm_user_id + '" partner-code="' + customers_data[i].partner_code + '" company-name="' + customers_data[i].company_name + '">';
                     raw_html += '<td>' + (i + 1) + '</td>';
                     raw_html += '<td>' + customers_data[i].company_name + '</td>';
-                    raw_html += '<td style="text-align:center;" id="customer_edit_form"><i class="fas fa-cog"></i></td>';
+                    // raw_html += '<td>' + customers_data[i].partner_code + '</td>';
+                    // raw_html += '<td style="text-align:center;" id="customer_edit_form"><i class="fas fa-cog"></i></td>';
                     raw_html += '</tr>';
                 }
                 $('#customer_info_table tbody').append(raw_html);
     }).catch(() => {
         alert("接続用API設定を確認してください");
     })
-    // cusrUrlCall.then(res => res.json() {
-    //     console.log(data.json())
-    // });
-    return 0;
-    cusrUrlCall.then(res => res.json())
-        .then(json => {
-            console.log(json);
-            return 0;
-                // console.log(json.customers_data);
-                var customers_data = json.customers_data;
-                var raw_html = '';
-                for (let i = 0; i < customers_data.length; i++) {
-                    // const element = array[i];
-                    raw_html += '<tr class="cust_info_row" id="' + customers_data[i].customer_id + '" partner-code="' + customers_data[i].partner_code + '" cust-name="' + customers_data[i].customer_name + '">';
-                    raw_html += '<td>' + (i + 1) + '</td>';
-                    raw_html += '<td>' + customers_data[i].customer_name + '</td>';
-                    raw_html += '<td style="text-align:center;" id="customer_edit_form"><i class="fas fa-cog"></i></td>';
-                    raw_html += '</tr>';
-                }
-                $('#customer_info_table tbody').append(raw_html);
-                // $('.cust_info_row.bg-secondary').removeClass("bg-secondary text-white");
-                // $('#' + customers_data[0].customer_id).addClass('bg-secondary text-white');
-            }).catch(function(err) {
-            alert("接続用API設定を確認してください");
-        });
 }
 
 function requestUrl(api_url, body_data = null) {
@@ -1235,51 +1192,48 @@ function areRefresh() {
     $("#tabs2").tabs({ active: 0 });
     $('.cust_info_row.bg-secondary').removeClass("bg-secondary text-white");
 
-    var customer_id = $("#customer_info_table>tbody>tr:first").attr('id');
-    var customer_name = $("#customer_info_table>tbody>tr:first").attr('cust-name');
+    var cmn_connect_id = $("#customer_info_table>tbody>tr:first").attr('cmn_connect_id');
+    var adm_user_id = $("#customer_info_table>tbody>tr:first").attr('adm_user_id');
+    var company_name = $("#customer_info_table>tbody>tr:first").attr('company-name');
     var partner_code = $("#customer_info_table>tbody>tr:first").attr('partner-code');
-    $('#customer_name_view').html(customer_name);
+    $('#company_name_view').html(company_name);
     $('#partner_code_view').html(partner_code);
-    $('#customer_id_for_schedule').val(customer_id);
+    $('#cmn_connect_id_for_schedule').val(cmn_connect_id);
     alertMessageClassRemove('', '', 'alert-danger');
     // $('#rpa_schedule_message').html('');
-    $('#' + customer_id).addClass('bg-secondary text-white');
-    serviceNameShow(customer_id)
+    // console.log(customer_id)
+    $('.cust_info_row').attr('cmn_connect_id',cmn_connect_id).addClass('bg-secondary text-white');
+    // $('#' + cmn_connect_id).addClass('bg-secondary text-white');
+    serviceNameShow({cmn_connect_id:cmn_connect_id,adm_user_id:adm_user_id})
 }
 
-function serviceNameShow(customer_id) {
-    body_data = { customer_id: customer_id };
+function serviceNameShow(get_service_parameters) {
     var show_service_url = properties.get('show_service_url');
-    var serviceData = requestUrl(show_service_url, body_data);
-    serviceData.then(res => res.json())
-        .then(
-            json => {
-                // all_service_data
-                // console.log(json);
-                var service_data = json.all_service_data;
-                var raw_html = '';
-                if (service_data.length) {
-                    // var raw_html = '';
-                    for (let i = 0; i < service_data.length; i++) {
-                        // const element = array[i];
-                        raw_html += '<tr class="service_info_row" remove_val="0" service-id="' + service_data[i].service_id + '" service-name="' + service_data[i].service_name + '">';
-                        raw_html += '<td>' + (i + 1) + '</td>';
-                        raw_html += '<td id="service_edit_form">' + service_data[i].service_name + '</td>';
-                        raw_html += '<td style="text-align:center;" id="service_execution"><i class="far fa-play-circle" style="font-size:30px;"></i></td>';
-                        raw_html += '<td style="text-align:center;" id="service_configureation"><i class="fas fa-cog" style="font-size:30px;"></i></td>';
-                        raw_html += '</tr>';
-                    }
-                } else {
-                    raw_html = '<tr remove_val="1"><td colspan="4">No data found</td></tr>';
-                    // raw_html = 'No data found';
-                }
+    var serviceData = axios.post(show_service_url, get_service_parameters);
+    serviceData.then(({ data }) => {
+         var service_data = data.all_service_data;
+         var raw_html = '';
+         if (service_data.length) {
+             // var raw_html = '';
+             for (let i = 0; i < service_data.length; i++) {
+                 // const element = array[i];
+                 raw_html += '<tr class="service_info_row" remove_val="0" service-id="' + service_data[i].lv3_service_id + '" service-name="' + service_data[i].service_name + '">';
+                 raw_html += '<td>' + (i + 1) + '</td>';
+                 raw_html += '<td id="service_edit_form">' + service_data[i].service_name + '</td>';
+                 raw_html += '<td style="text-align:center;" id="service_execution"><i class="far fa-play-circle" style="font-size:30px;"></i></td>';
+                 raw_html += '<td style="text-align:center;" id="service_configureation"><i class="fas fa-cog" style="font-size:30px;"></i></td>';
+                 raw_html += '</tr>';
+             }
+         } else {
+             raw_html = '<tr remove_val="1"><td colspan="4">No data found</td></tr>';
+             // raw_html = 'No data found';
+         }
 
-                $('#service_info_table tbody').html(raw_html);
-                if (service_data.length) {
-                    rpa_schedule_show(service_data[0].service_id);
-                }
-
-            }).catch(function(err) {
+         $('#service_info_table tbody').html(raw_html);
+         if (service_data.length) {
+             rpa_schedule_show(service_data[0].lv3_service_id);
+         }
+        }).catch(()=>{
             alert("接続用API設定を確認してください");
         });
 }

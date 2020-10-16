@@ -180,7 +180,7 @@ $(document).ready(function() {
         $('#week_data tr:last').after(row);
     });
     // delete row from schedule 
-    $("#delete_row").click(function() {
+    $("#delete_row").on('click',function() {
         $("#week_data tbody").find('input[name="record"]').each(function() {
             if ($(this).is(":checked")) {
                 $(this).parents("tr").remove();
@@ -281,7 +281,7 @@ $(document).ready(function() {
         $('#date_specification_table tr:last').after(row);
     });
     // delete row from schedule 
-    $("#delete_date_row").click(function() {
+    $("#delete_date_row").on('click',function() {
         $("#date_specification_table tbody").find('input[name="rrrr"]').each(function() {
             if ($(this).is(":checked")) {
                 $(this).parents("tr").remove();
@@ -531,18 +531,18 @@ $(document).ready(function() {
     $(document).on('click', '#job_save', function() {
         // alert("OK");
         var job_execution_flag = $("#job_execution_flag").is(':checked');
-        var api_execute = $("#api_execute").is(':checked');
+        var scenario_execute = $("#scenario_execute").is(':checked');
         var batch_execute = $("#batch_execute").is(':checked');
         // var api_path = $("#api_path").val();
         var cmn_scenario_id = $("#cmn_scenario_id").val();
         var batch_file_path = $("#batch_file_path_box").val();
         var service_id = $('#service_id_popup').val();
         var job_update_id = $('#job_update_id').val();
-        if (api_path.length > 500) {
-            scheduleMessageClassRemove('alert-danger', "API can not more than 500 character", 'alert-success');
-            // console.log("API can not more than 500 character");
-            return false;
-        }
+        // if (api_path.length > 500) {
+        //     scheduleMessageClassRemove('alert-danger', "API can not more than 500 character", 'alert-success');
+        //     // console.log("API can not more than 500 character");
+        //     return false;
+        // }
         if (batch_file_path.length > 500) {
             scheduleMessageClassRemove('alert-danger', "Batch file path can not more than 500 character", 'alert-success');
             // console.log("Batch file path can not more than 500 character");
@@ -550,12 +550,15 @@ $(document).ready(function() {
         }
 
         var execution = '';
-        if (api_execute) {
-            execution = 'api';
+        if (scenario_execute) {
+            execution = 'scenario';
         } else if (batch_execute) {
             execution = 'batch';
         } else {
-            execution = 'api';
+            execution = 'batch';
+        }
+        if (execution=="scenario" && cmn_scenario_id==null) {
+            scheduleMessageClassRemove('alert-danger', "Scenario list empty", 'alert-success');
         }
         var set_job_data_url = properties.get('set_job_data_url');
         body_data = { service_id: service_id, job_update_id: job_update_id, cmn_scenario_id: cmn_scenario_id, batch_file_path: batch_file_path, execution: execution, job_execution_flag: job_execution_flag }

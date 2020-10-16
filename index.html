@@ -401,16 +401,21 @@
                                         </table>
                                     </div> -->
                                     <div class="col-md-1">
-                                        <input id="api_execute" name="execute" type="radio" class="form-control" style="text-align: left !important;">
+                                        <input id="scenario_execute" name="execute" type="radio" class="form-control" style="text-align: left !important;">
                                     </div>
                                     <div class="col-md-2">
-                                        <label class="control-label path_level" for="api_path">API</label>
+                                        <label class="control-label path_level" for="scenario_execute">Scenario</label>
                                     </div>
                                     <div class="col-md-9">
-                                        <input type="hidden" name="cmn_scenario_id" id="cmn_scenario_id">
-                                        <div class="upload-btn-wrapper scenario_list_show" style="line-height: 37px !important;">
-                                            <!-- <input type="text" onclick="$('#api_execute').click();" style="width: 100% !important;" class="file_path_level control-label  text-left" id="api_path"> -->
-                                        </div>
+                                        <!-- <div class="upload-btn-wrapper scenario_list_show" style="line-height: 37px !important;">
+                                            <input type="text" onclick="$('#api_execute').click();" style="width: 100% !important;" class="file_path_level control-label  text-left" id="api_path">
+                                        </div> -->
+                                        <select name="cmn_scenario_id" id="cmn_scenario_id" class="form-control" onclick="$('#scenario_execute').click();">
+
+                                        </select>
+                                        <!-- <div class="scenario_list_show">
+
+                                        </div> -->
                                     </div>
                                 </div>
                             </div>

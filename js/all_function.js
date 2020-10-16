@@ -82,8 +82,6 @@ function service1Process(service_id = null, process_type = "Auto") {
     var body_data = { service_id: service_id, service: 1 }
     axios.post(get_service_data_url, body_data).then(({ data }) => {
         var service1 = data.service1;
-                // console.log(json);
-                // console.log(service1);
                 if (!jQuery.isEmptyObject(service1)) {
                     if (process_type == "Manual") {
                         service1Execution(service1, user_id, process_type)
@@ -136,7 +134,7 @@ function service1Execution(service1, user_id, process_type) {
             }
             //file exists
         })
-    } else if (service1.execution == 'api') {
+    } else if (service1.execution == 'scenario') {
         // console.log("API not allow for this job");
         order_history_data = {
             process_type: process_type,
@@ -150,11 +148,7 @@ function service1Execution(service1, user_id, process_type) {
         executionErrorLogo(0);
     }
 }
-// axios.post(get_service_data_url, body_data).then(({ data }) => {
-    
-// }).catch(()=>{
-//     alert("接続用API設定を確認してください");
-// });
+
 // Service2
 function service2Process(service_id = null, process_type = "Auto") {
     // console.log("Job2 executing...");
@@ -264,31 +258,34 @@ function service2Execution(service2, user_id, process_type) {
         executionEndLogo(1);
     }
 }
+
 // Service3
 function service3Process(service_id = null, process_type = "Auto") {
     // console.log("Job3 executing...");
     executionStartLogo(2)
-    var customer_name = $('#customer_name_view').html();
+    var customer_name = $('#company_name_view').html();
     var user_id = $('#user_id').val();
     var service_id = $("#service_info_table > tbody > tr:eq(2)").attr('service-id')
+    // console.log(service_id);
+    // return 0;
     if (!service_id) {
+        // console.log(service_id);
         // alertMessageClassRemove('alert-danger', 'Please add 3 order job for the customer: ' + customer_name, 'alert-success');
         console.log("No service ID found for Order3");
         executionErrorLogo(2)
         return 0;
     }
+    // console.log("Extra: "+service_id);
+    // return 0;
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = { service_id: service_id, service: 3 }
-
-    requestUrl(get_service_data_url, body_data).then(res => res.json())
-        .then(
-            json => {
-                var service3 = json.service3;
+    axios.post(get_service_data_url, body_data).then(({ data }) => {
+        var service3 = data.service3;
                 if (!jQuery.isEmptyObject(service3)) {
                     if (process_type == "Manual") {
                         service3Execution(service3, user_id, process_type);
                     } else {
-                        if (service3.path_execution_flag) {
+                        if (service3.job_execution_flag) {
                             service3Execution(service3, user_id, process_type);
                         } else {
                             console.log("Path execution off for order3");
@@ -299,17 +296,37 @@ function service3Process(service_id = null, process_type = "Auto") {
                     console.log("Order3 setup not completed yet");
                     executionErrorLogo(2)
                 }
-            }).catch(function(err) {
-            alert("接続用API設定を確認してください in order3");
-        });
-
+    }).catch(()=>{
+        alert("接続用API設定を確認してください in order3");
+    });
 }
 
 function service3Execution(service3, user_id, process_type) {
     var order_history_data;
     // console.log(service3);
+    // return 0;
     // console.log(service3.execution);
-    if (service3.execution == 'api') {
+    if (service3.execution == 'scenario') {
+        // console.log(service3);
+        // return 0;
+        var job_scenario_api = properties.get('job_scenario_api');
+        axios.post(job_scenario_api, {cmn_scenario_id:service3.cmn_scenario_id}).then(({ data }) => {
+            console.log(data);
+            // var order_history_data = {
+            //     process_type: process_type,
+            //     user_id: user_id,
+            //     service_id: (service3.lv3_service_id),
+            //     status: 'Success',
+            //     execute_name: '発注データ',
+            //     history_message: "Order3 Job Executed Successfully"
+            // }
+            // historyCreate(order_history_data);
+            executionEndLogo(2)
+        }).catch(()=>{
+            executionErrorLogo(2)
+            console.log("接続用API設定を確認してください in Order3");
+        });
+        return 0;
         var checked_files = [];
         try {
             var files_of_checked_folder = fs.readdirSync(service3.check_folder_path + "/");
@@ -342,47 +359,52 @@ function service3Execution(service3, user_id, process_type) {
                     form.append('keyword', checked_files[i]);
                     form.append('upfile', new Blob([file_data]), service3.check_folder_path + '/' + checked_files[i]);
                     // var file_name_for_api = checked_files[i];
-                    const order3_request = new Request(service3.api_path, {
-                        // const order3_request = new Request("http://localhost/level3_server/file_send_url", {
-                        method: 'POST',
-                        body: form
-                    });
-                    fetch(order3_request)
-                        .then(response => response.json())
-                        .then(data => {
-                            fs.access(service3.moved_folder_path, fs.F_OK, (err) => {
-                                if (err) {
-                                    // console.log("May be move folder path is not valid");
-                                    order_history_data = {
-                                        process_type: process_type,
-                                        user_id: user_id,
-                                        service_id: (service3.service_id),
-                                        status: 'Error',
-                                        execute_name: '発注データ',
-                                        history_message: "May be move folder path is not valid for order3"
-                                    }
-                                    historyCreate(order_history_data);
-                                    return 0;
-                                } else {
-                                    moveFile(service3.check_folder_path, service3.moved_folder_path, data.up_file_name)
-                                    var order_history_data = {
-                                        process_type: process_type,
-                                        user_id: user_id,
-                                        service_id: (service3.service_id),
-                                        status: 'Success',
-                                        execute_name: '発注データ',
-                                        history_message: "Order3 Job Executed Successfully"
-                                    }
-                                    historyCreate(order_history_data);
-                                    executionEndLogo(2)
+                    axios.post(service3.api_path, form).then(({ data }) => {
+                        fs.access(service3.moved_folder_path, fs.F_OK, (err) => {
+                            if (err) {
+                                // console.log("May be move folder path is not valid");
+                                order_history_data = {
+                                    process_type: process_type,
+                                    user_id: user_id,
+                                    service_id: (service3.lv3_service_id),
+                                    status: 'Error',
+                                    execute_name: '発注データ',
+                                    history_message: "May be move folder path is not valid for order3"
                                 }
+                                historyCreate(order_history_data);
+                                return 0;
+                            } else {
+                                moveFile(service3.check_folder_path, service3.moved_folder_path, data.up_file_name)
+                                var order_history_data = {
+                                    process_type: process_type,
+                                    user_id: user_id,
+                                    service_id: (service3.lv3_service_id),
+                                    status: 'Success',
+                                    execute_name: '発注データ',
+                                    history_message: "Order3 Job Executed Successfully"
+                                }
+                                historyCreate(order_history_data);
+                                executionEndLogo(2)
+                            }
 
-                            });
-                        }).catch(function() {
-                            executionErrorLogo(2)
-                            console.log("接続用API設定を確認してください in Order3");
-                            // scheduleMessageClassRemove('alert-danger', '接続用API設定を確認してください', 'alert-success');
                         });
+                    }).catch(()=>{
+                        executionErrorLogo(2)
+                        console.log("接続用API設定を確認してください in Order3");
+                    });
+                    // const order3_request = new Request(service3.api_path, {
+                    //     // const order3_request = new Request("http://localhost/level3_server/file_send_url", {
+                    //     method: 'POST',
+                    //     body: form
+                    // });
+                    // fetch(order3_request)
+                    //     .then(response => response.json())
+                    //     .then(data => {
+                            
+                    //     }).catch(function() {
+                            
+                    //         // scheduleMessageClassRemove('alert-danger', '接続用API設定を確認してください', 'alert-success');
+                    //     });
                 }
 
             }
@@ -395,7 +417,7 @@ function service3Execution(service3, user_id, process_type) {
                     order_history_data = {
                         process_type: process_type,
                         user_id: user_id,
-                        service_id: (service3.service_id),
+                        service_id: (service3.lv3_service_id),
                         status: 'Error',
                         execute_name: '発注データ',
                         history_message: "May be check folder path is not valid or it is empty for order3"
@@ -411,7 +433,7 @@ function service3Execution(service3, user_id, process_type) {
         order_history_data = {
             process_type: process_type,
             user_id: user_id,
-            service_id: (service3.service_id),
+            service_id: (service3.lv3_service_id),
             status: 'Error',
             execute_name: '発注データ',
             history_message: "Batch not allow for this job in order3"
@@ -422,11 +444,12 @@ function service3Execution(service3, user_id, process_type) {
 
     // files = [];
 }
+
 // Service4
 function service4Process(service_id = null, process_type = "Auto") {
     // console.log("Job4 executing...");
     executionStartLogo(3)
-    var customer_name = $('#customer_name_view').html();
+    var customer_name = $('#company_name_view').html();
     var user_id = $('#user_id').val();
     var shipment_history_data = '';
     var service_id = $("#service_info_table > tbody > tr:eq(3)").attr('service-id')
@@ -438,69 +461,62 @@ function service4Process(service_id = null, process_type = "Auto") {
     }
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = { service_id: service_id, service: 4 }
-
-    requestUrl(get_service_data_url, body_data).then(res => res.json())
-        .then(
-            json => {
-                var service4 = json.service4;
-                if (!jQuery.isEmptyObject(service4)) {
-
-                    requestUrl(service4.api_url, {}).then(res => res.json())
-                        .then(
-                            json => {
-                                // console.log(json.file_found);
-                                // return 0;
-                                if (json.file_found) {
-                                    fs.access(service4.api_folder_path, fs.F_OK, (err) => {
-                                        if (err) {
-                                            // console.log("May be API folder path is not valid");
-                                            shipment_history_data = {
-                                                process_type: process_type,
-                                                user_id: user_id,
-                                                service_id: (service4.service_id),
-                                                status: 'Error',
-                                                execute_name: '確定データ',
-                                                history_message: "May be API folder path is not valid for Shipment1"
-                                            }
-                                            historyCreate(order_history_data);
-                                            executionEndLogo(3);
-                                            return 0;
-                                        } else {
-                                            file_save_from_url(json.file_name, json.file_path, service4.api_folder_path);
-                                            shipment_history_data = {
-                                                process_type: process_type,
-                                                user_id: user_id,
-                                                service_id: (service4.service_id),
-                                                status: 'Success',
-                                                execute_name: '確定データ',
-                                                history_message: "Shipment1 Job Executed Successfully"
-                                            }
-                                            historyCreate(shipment_history_data);
-                                            executionEndLogo(3);
-                                        }
-                                    })
-                                } else {
-                                    console.log("No file found in API for shipment1");
-                                    executionEndLogo(3)
-                                }
-
-                            }).catch(function() {
-                            console.log("接続用API設定を確認してください for shipment1");
-                            executionErrorLogo(3)
-                                // scheduleMessageClassRemove('alert-danger', 'Please check your API URL or Internet connection', 'alert-success');
-                        });
+    axios.post(get_service_data_url, body_data).then(({ data }) => {
+        var service4 = data.service4;
+        if (!jQuery.isEmptyObject(service4)) {
+            axios.post(service4.api_url, {}).then(({ json }) => {
+                if (json.file_found) {
+                    fs.access(service4.api_folder_path, fs.F_OK, (err) => {
+                        if (err) {
+                            // console.log("May be API folder path is not valid");
+                            shipment_history_data = {
+                                process_type: process_type,
+                                user_id: user_id,
+                                service_id: (service4.lv3_service_id),
+                                status: 'Error',
+                                execute_name: '確定データ',
+                                history_message: "May be API folder path is not valid for Shipment1"
+                            }
+                            historyCreate(order_history_data);
+                            executionEndLogo(3);
+                            return 0;
+                        } else {
+                            file_save_from_url(json.file_name, json.file_path, service4.api_folder_path);
+                            shipment_history_data = {
+                                process_type: process_type,
+                                user_id: user_id,
+                                service_id: (service4.lv3_service_id),
+                                status: 'Success',
+                                execute_name: '確定データ',
+                                history_message: "Shipment1 Job Executed Successfully"
+                            }
+                            historyCreate(shipment_history_data);
+                            executionEndLogo(3);
+                        }
+                    })
                 } else {
-                    console.log("Shipment1 setup not completed yet");
-                    executionErrorLogo(3)
+                    console.log("No file found in API for shipment1");
+                    executionEndLogo(3)
                 }
-            })
+            }).catch(()=>{
+                console.log("接続用API設定を確認してください for shipment1");
+                executionErrorLogo(3)
+            });
+        } else {
+            console.log("Shipment1 setup not completed yet");
+            executionErrorLogo(3)
+        }
+    }).catch(()=>{
+        alert("接続用API設定を確認してください");
+    });
 
 }
+
 // Service5
 function service5Process(service_id = null, process_type = "Auto") {
     // console.log("Job5 executing...");
     executionStartLogo(4)
-    var customer_name = $('#customer_name_view').html();
+    var customer_name = $('#company_name_view').html();
     var user_id = $('#user_id').val();
     var service_id = $("#service_info_table > tbody > tr:eq(4)").attr('service-id')
     if (!service_id) {
@@ -511,32 +527,28 @@ function service5Process(service_id = null, process_type = "Auto") {
     }
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = { service_id: service_id, service: 5 }
-
-    requestUrl(get_service_data_url, body_data).then(res => res.json())
-        .then(
-            json => {
-                var service5 = json.service5;
-                // console.log(service5);
-                if (!jQuery.isEmptyObject(service5)) {
-                    if (process_type == "Manual") {
-                        service5Execution(service5, user_id, process_type);
-                    } else {
-                        if (service5.job_execution_flag) {
-                            service5Execution(service5, user_id, process_type);
-                        } else {
-                            console.log("Job execution off for shipment2");
-                            executionEndLogo(4)
-                        }
-                    }
+    axios.post(get_service_data_url, body_data).then(({ data }) => {
+        var service5 = data.service5;
+        // console.log(service5);
+        if (!jQuery.isEmptyObject(service5)) {
+            if (process_type == "Manual") {
+                service5Execution(service5, user_id, process_type);
+            } else {
+                if (service5.job_execution_flag) {
+                    service5Execution(service5, user_id, process_type);
                 } else {
-                    console.log("Shipment2 setup not completed yet");
-                    executionErrorLogo(4)
+                    console.log("Job execution off for shipment2");
+                    executionEndLogo(4)
                 }
-            }).catch(function(err) {
-            console.log(err);
-            alert("接続用API設定を確認してください for Shipment2");
-        });
-
+            }
+        } else {
+            console.log("Shipment2 setup not completed yet");
+            executionErrorLogo(4)
+        }
+    }).catch(()=>{
+        console.log(err);
+        alert("接続用API設定を確認してください for Shipment2");
+    });
 }
 
 function service5Execution(service5, user_id, process_type) {
@@ -564,7 +576,7 @@ function service5Execution(service5, user_id, process_type) {
                     shipment_history_data = {
                         process_type: process_type,
                         user_id: user_id,
-                        service_id: (service5.service_id),
+                        service_id: (service5.lv3_service_id),
                         status: 'Error',
                         execute_name: '確定データ',
                         history_message: "May be batch file or path is not valid for Shipment2"
@@ -577,7 +589,7 @@ function service5Execution(service5, user_id, process_type) {
                     shipment_history_data = {
                         process_type: process_type,
                         user_id: user_id,
-                        service_id: (service5.service_id),
+                        service_id: (service5.lv3_service_id),
                         status: 'Success',
                         execute_name: '確定データ',
                         history_message: "Shipment2 Job Executed Successfully"
@@ -593,7 +605,7 @@ function service5Execution(service5, user_id, process_type) {
                     shipment_history_data = {
                         process_type: process_type,
                         user_id: user_id,
-                        service_id: (service5.service_id),
+                        service_id: (service5.lv3_service_id),
                         status: 'Error',
                         execute_name: '確定データ',
                         history_message: "May be check folder path is not valid or it is empty for Shipment2"
@@ -608,7 +620,7 @@ function service5Execution(service5, user_id, process_type) {
         shipment_history_data = {
             process_type: process_type,
             user_id: user_id,
-            service_id: (service5.service_id),
+            service_id: (service5.lv3_service_id),
             status: 'Error',
             execute_name: '確定データ',
             history_message: "API not allow for this job in Shipment2"
@@ -617,11 +629,12 @@ function service5Execution(service5, user_id, process_type) {
     }
 
 }
+
 // Service6 
 function service6Process(service_id = null, process_type = "Auto") {
     // console.log("Job6 executing...");
     executionStartLogo(5)
-    var customer_name = $('#customer_name_view').html();
+    var customer_name = $('#company_name_view').html();
     var user_id = $('#user_id').val();
     var service_id = $("#service_info_table > tbody > tr:eq(5)").attr('service-id')
     if (!service_id) {
@@ -632,30 +645,26 @@ function service6Process(service_id = null, process_type = "Auto") {
     }
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = { service_id: service_id, service: 6 }
-
-    requestUrl(get_service_data_url, body_data).then(res => res.json())
-        .then(
-            json => {
-                var service6 = json.service6;
-                if (!jQuery.isEmptyObject(service6)) {
-                    if (process_type == "Manual") {
-                        service6Execution(service6, user_id, process_type);
-                    } else {
-                        if (service6.job_execution_flag) {
-                            service6Execution(service6, user_id, process_type);
-                        } else {
-                            console.log("Job execution off for shipment3");
-                            executionEndLogo(5)
-                        }
-                    }
+    axios.post(get_service_data_url, body_data).then(({ data }) => {
+        var service6 = data.service6;
+        if (!jQuery.isEmptyObject(service6)) {
+            if (process_type == "Manual") {
+                service6Execution(service6, user_id, process_type);
+            } else {
+                if (service6.job_execution_flag) {
+                    service6Execution(service6, user_id, process_type);
                 } else {
-                    console.log("Shipment3 setup not completed yet");
-                    executionErrorLogo(5)
+                    console.log("Job execution off for shipment3");
+                    executionEndLogo(5)
                 }
-            }).catch(function(err) {
-            alert("接続用API設定を確認してください for Shipment3");
-        });
-
+            }
+        } else {
+            console.log("Shipment3 setup not completed yet");
+            executionErrorLogo(5)
+        }
+    }).catch(()=>{
+        alert("接続用API設定を確認してください for Shipment3");
+    });
 }
 
 function service6Execution(service6, user_id, process_type) {
@@ -682,7 +691,7 @@ function service6Execution(service6, user_id, process_type) {
                     shipment_history_data = {
                         process_type: process_type,
                         user_id: user_id,
-                        service_id: (service6.service_id),
+                        service_id: (service6.lv3_service_id),
                         status: 'Error',
                         execute_name: '確定データ',
                         history_message: "May be batch file or path is not valid for Shipment2"
@@ -695,7 +704,7 @@ function service6Execution(service6, user_id, process_type) {
                     shipment_history_data = {
                         process_type: process_type,
                         user_id: user_id,
-                        service_id: (service6.service_id),
+                        service_id: (service6.lv3_service_id),
                         status: 'Success',
                         execute_name: '確定データ',
                         history_message: "Shipment3 Job Executed Successfully"
@@ -711,7 +720,7 @@ function service6Execution(service6, user_id, process_type) {
                     shipment_history_data = {
                         process_type: process_type,
                         user_id: user_id,
-                        service_id: (service6.service_id),
+                        service_id: (service6.lv3_service_id),
                         status: 'Error',
                         execute_name: '確定データ',
                         history_message: "May be check folder path is not valid or it is empty for Shipment3"
@@ -726,7 +735,7 @@ function service6Execution(service6, user_id, process_type) {
         shipment_history_data = {
             process_type: process_type,
             user_id: user_id,
-            service_id: (service6.service_id),
+            service_id: (service6.lv3_service_id),
             status: 'Error',
             execute_name: '確定データ',
             history_message: "API not allow for this case for Shipment2"
@@ -794,10 +803,11 @@ function rpa_schedule_show(service_id) {
     var get_schedule_data_url = properties.get('get_schedule_data_url');
     var getRpaData = axios.post(get_schedule_data_url, user_data);
     getRpaData.then(({ data }) => {
-        // console.log(data);
+        console.log(data);
         var file_path_info = data.file_path_info;
             var schedule_array = data.schedule_array;
             var job_info = data.job_info;
+            var job_api_scenario_list = data.job_api_scenario_list;
             // console.log(schedule_array[1].day);
             // return 0;
             if (schedule_array.length != 0) {
@@ -848,7 +858,7 @@ function rpa_schedule_show(service_id) {
             }
             // console.log(file_path_info.length);
             // file_path_info != null
-            if (file_path_info.length!=0) {
+            if (file_path_info != null) {
                 if (file_path_info['path_execution_flag'] == 1) {
                     $("#path_execution_flag").prop("checked", true);
                 } else {
@@ -874,37 +884,44 @@ function rpa_schedule_show(service_id) {
                 $('#api_folder_path_box').val('');
             }
             // job_info != null ||
-            if ( job_info.length!=0) {
+            if ( job_info != null) {
+                console.log(job_info);
                 if (job_info['job_execution_flag'] == 1) {
                     $("#job_execution_flag").prop("checked", true);
                 } else {
                     $("#job_execution_flag").prop("checked", false);
                 }
-                if (job_info['execution'] == 'api') {
-                    // var scenario_html="";
-                    // scenario_html+="<ul>"
-                    // scenario_html+='<li>'+job_info.name+'</li>'
-                    // scenario_html+="</ul>"
-                    $(".scenario_list_show").html(job_info.name);
+                if (job_info['execution'] == 'scenatio') {
+                    $("#scenario_execute").prop("checked", true);
                 } else if (job_info['execution'] == 'batch') {
                     $("#batch_execute").prop("checked", true);
                 }
-                $("#cmn_scenario_id").val(job_info['cmn_scenario_id']);
+                
                 $('#job_update_id').val(job_info['lv3_job_id']);
-                $('#api_path').val(job_info['api_path']);
+                // $('#api_path').val(job_info['api_path']);
                 $('#batch_file_path_box').val(job_info['batch_file_path']);
                 // $('#shipment_file_path_box').val(file_path_info['shipment_path']);
 
             } else {
                 $("#job_update_id").val('');
                 $("#job_execution_flag").prop("checked", false);
-                $(".scenario_list_show").html('No Scenario found');
-                $("#cmn_scenario_id").val('');
-                // $("#api_execute").prop("checked", false);
+                $("#scenario_execute").prop("checked", false);
                 $("#batch_execute").prop("checked", false);
                 // $('#api_path').val('');
                 $('#batch_file_path_box').val('');
                 // $('#shipment_file_path_box').val('');
+            }
+            if (job_api_scenario_list.length!=0) {
+                // var cmn_scenario_ids=[];
+                var scenario_html="";
+                job_api_scenario_list.forEach(element => {
+                    // cmn_scenario_ids.push(element.cmn_scenario_id)
+                    scenario_html+='<option value="'+element.cmn_scenario_id+'"'+(job_info!=null?(element.cmn_scenario_id==job_info.cmn_scenario_id?"selected":""):"")+'>'+element.name+'</option>' 
+                });
+                $("#cmn_scenario_id").html(scenario_html);
+                // $("#cmn_scenario_id").val(cmn_scenario_ids); 
+            }else{
+                $("#cmn_scenario_id").html('<option value="">No Scenario found</option>');
             }
             $('.loader').removeClass('d-block');
             $('.loader').addClass('d-none');
@@ -1098,16 +1115,19 @@ function requestUrl(api_url, body_data = null) {
     // console.log(reqest_ulr);
 }
 
+// axios.post(get_service_data_url, body_data).then(({ data }) => {
+    
+// }).catch(()=>{
+//     alert("接続用API設定を確認してください");
+// });
+
 function historyCreate(history_data) {
     var history_create_url = properties.get('history_create_url');
-    requestUrl(history_create_url, history_data).then(res => res.json())
-        .then(
-            json => {
-                // console.log(json);
-                history();
-            }).catch(function(err) {
-            alert("接続用API設定を確認してください");
-        });
+    axios.post(history_create_url, history_data).then(({ data }) => {
+        history();
+    }).catch(()=>{
+        alert("接続用API設定を確認してください");
+    });
 }
 
 function history() {
@@ -1123,7 +1143,7 @@ function history() {
                 history_html += '<th>No</th>';
                 history_html += '<th>取引先名</th>';
                 history_html += '<th>サービス名</th>'; //Service Name
-                history_html += '<th>実行履歴</th>'; //Executed
+                // history_html += '<th>実行履歴</th>'; //Executed
                 history_html += '<th>実行種別</th>'; //Execute type
                 history_html += '<th>ステータス</th>';
                 history_html += '<th>日時</th>';
@@ -1137,7 +1157,7 @@ function history() {
                     history_html += '<td>' + i + '</td>';
                     history_html += '<td>' + history.company_name + '</td>';
                     history_html += '<td>' + history.service_name + '</td>';
-                    history_html += '<td>' + history.execute_name + '</td>';
+                    // history_html += '<td>' + history.execute_name + '</td>';
                     history_html += '<td>' + history.execute_type + '</td>';
                     history_html += '<td class="history_message" hist_message="' + history.message + '" style="text-align:center; font-size:30px;">' + (history.status == "Success" ? '<i class="fa fa-check-circle" aria-hidden="true"></i>' : '<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>') + '</td>';
                     history_html += '<td>' + formatDate(new Date(history.updated_at)) + '</td>';

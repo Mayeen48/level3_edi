@@ -17,7 +17,7 @@ history_create_url=http://localhost/jcs/api/history_create
 job_scenario_api=http://localhost/jcs/api/job_scenario
 #Time must be in seconds
 #Default trigger_execution_time=60 sec
-trigger_execution_time=30
+trigger_execution_time=60
 
 # schedule_file_data_url=http://localhost/level3_server/schedule_file_data
 

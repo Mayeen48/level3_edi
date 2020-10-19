@@ -623,7 +623,7 @@ function service5Execution(service5, user_id, process_type) {
             service_id: (service5.lv3_service_id),
             status: 'Error',
             execute_name: '確定データ',
-            history_message: "API not allow for this job in Shipment2"
+            history_message: "Scenario not allow for this job in Shipment2"
         }
         historyCreate(shipment_history_data);
     }
@@ -730,15 +730,15 @@ function service6Execution(service6, user_id, process_type) {
             });
             executionEndLogo(5)
         }
-    } else if (service6.execution == 'api') {
-        console.log("API not allow for this case");
+    } else if (service6.execution == 'scenario') {
+        console.log("Scenario not allow for this case");
         shipment_history_data = {
             process_type: process_type,
             user_id: user_id,
             service_id: (service6.lv3_service_id),
             status: 'Error',
             execute_name: '確定データ',
-            history_message: "API not allow for this case for Shipment2"
+            history_message: "Scenario not allow for this case for Shipment2"
         }
         historyCreate(shipment_history_data);
         executionErrorLogo(5)
@@ -1160,7 +1160,8 @@ function history() {
                     // history_html += '<td>' + history.execute_name + '</td>';
                     history_html += '<td>' + history.execute_type + '</td>';
                     history_html += '<td class="history_message" hist_message="' + history.message + '" style="text-align:center; font-size:30px;">' + (history.status == "Success" ? '<i class="fa fa-check-circle" aria-hidden="true"></i>' : '<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>') + '</td>';
-                    history_html += '<td>' + formatDate(new Date(history.updated_at)) + '</td>';
+                    // history_html += '<td>' + formatDate(new Date(history.updated_at)) + '</td>';
+                    history_html += '<td>' + history.updated_at + '</td>';
                     history_html += '</tr>';
                     i++;
                 });
@@ -1189,12 +1190,13 @@ function history() {
 }
 
 function formatDate(date) {
-    return date.getFullYear() + '-' +
+    var d=date.getFullYear() + '-' +
         length_fill(date.getMonth() + 1) + '-' +
         length_fill(date.getDate()) + ' ' +
         length_fill(date.getHours()) + ':' +
         length_fill(date.getMinutes()) + ':' +
         length_fill(date.getSeconds());
+        return  d.toString();
 }
 
 function length_fill(data_string) {

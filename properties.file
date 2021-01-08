@@ -6,6 +6,7 @@ history_url=http://localhost/jcs/api/history_url
 get_customer_url=http://localhost/jcs/api/get_customer
 show_service_url=http://localhost/jcs/api/show_service_url
 add_service_url=http://localhost/jcs/api/add_service
+delete_service_url=http://localhost/jcs/api/delete_service
 get_schedule_data_url=http://localhost/jcs/api/get_schedule_data
 set_schedule_data_url=http://localhost/jcs/api/set_schedule_data
 set_file_path=http://localhost/jcs/api/set_file_path
@@ -27,10 +28,6 @@ trigger_execution_time=60
 
 # delete_customer_url=http://localhost/level3_server/delete_customer_url
 
-
-
-
-# delete_service_url=http://localhost/level3_server/delete_service
 
 
 report_api_url=http://localhost/level3_server/api/report_api

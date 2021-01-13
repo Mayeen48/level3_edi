@@ -11,14 +11,14 @@ get_schedule_data_url=http://localhost/jcs/api/get_schedule_data
 set_schedule_data_url=http://localhost/jcs/api/set_schedule_data
 set_file_path=http://localhost/jcs/api/set_file_path
 set_job_data_url=http://localhost/jcs/api/set_job_data
-schedule_time_data_url=http://localhost/jcs/api/schedule_time_data
+lv3_schedule_data_url=http://localhost/jcs/api/lv3_schedule_data
 get_service_data_url=http://localhost/jcs/api/get_service_data
 history_create_url=http://localhost/jcs/api/history_create
 #scenario API
 job_scenario_api=http://localhost/jcs/api/job_scenario
 #Time must be in seconds
 #Default trigger_execution_time=60 sec
-trigger_execution_time=60
+trigger_execution_time=5
 
 # schedule_file_data_url=http://localhost/level3_server/schedule_file_data
 

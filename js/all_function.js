@@ -84,6 +84,7 @@ function time_date_match(service_id, type = 1, callback) {
 }
 
 function folderCheck(service_id, callback) {
+    var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
     // executionStartLogo(service_id)
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = {
@@ -108,12 +109,12 @@ function folderCheck(service_id, callback) {
             }
             // }
         } else {
-            alert('Service ' + service_id + ' Folder setup not completed yet');
+            alert('Service ' + (service_row + 1) + ' Folder setup not completed yet');
             // console.log("Service setup not completed yet");
             // executionErrorLogo(service_id)
         }
     }).catch(() => {
-        alert('Service ' + service_id + ' Folder setup not completed yet');
+        alert('Service ' + (service_row + 1) + ' Folder setup not completed yet');
     });
 }
 
@@ -133,47 +134,57 @@ function jobExec(service_id, service_traking_number = null) {
     }) => {
         var service = data.service;
         // console.log(service)
+        // return 0;
         if (service) {
-            if (service.batch_file_path != null) {
-                fs.access(service.batch_file_path, fs.F_OK, (err) => {
-                    if (err) {
-                        // console.log("May be batch file or path is not valid");
-                        order_history_data = {
-                            process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                            user_id: user_id,
-                            service_id: (service.lv3_service_id),
-                            status: 'Error',
-                            execute_name: '発注データ',
-                            history_message: "May be batch file or path is not valid"
-                        }
-                        historyCreate(order_history_data);
-                        executionEndLogo(service_id);
-                        return 0;
-                    } else {
-                        shell.openItem(service.batch_file_path);
-                        order_history_data = {
-                            process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                            user_id: user_id,
-                            service_id: (service.lv3_service_id),
-                            status: 'Success',
-                            execute_name: '発注データ',
-                            history_message: "Job Executed Successfully"
-                        }
-                        historyCreate(order_history_data);
-                        executionEndLogo(service_id);
-                        if (service.next_service_id) {
-                            var next_service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
-                            // var next_service_row = $("table").find("[service-id='" + service.next_service_id + "']").index();
-                            console.log(next_service_row);
-                            trigger((service.next_service_id), next_service_row);
-                        }
+            if (service.execution == 'batch') {
+                if (service.batch_file_path != null) {
+                    fs.access(service.batch_file_path, fs.F_OK, (err) => {
+                        if (err) {
+                            // console.log("May be batch file or path is not valid");
+                            order_history_data = {
+                                process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                                user_id: user_id,
+                                service_id: (service.lv3_service_id),
+                                status: 'Error',
+                                execute_name: '発注データ',
+                                history_message: "May be batch file or path is not valid"
+                            }
+                            historyCreate(order_history_data);
+                            executionEndLogo(service_id);
+                            return 0;
+                        } else {
+                            shell.openItem(service.batch_file_path);
+                            order_history_data = {
+                                process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                                user_id: user_id,
+                                service_id: (service.lv3_service_id),
+                                status: 'Success',
+                                execute_name: '発注データ',
+                                history_message: "Job Executed Successfully"
+                            }
+                            historyCreate(order_history_data);
+                            executionEndLogo(service_id);
+                            if (service.next_service_id) {
+                                var next_service_row = $('#service_info_table tbody tr[service-id="' + service.next_service_id + '"]').index();
+                                // var next_service_row = $("table").find("[service-id='" + service.next_service_id + "']").index();
+                                console.log(next_service_row);
+                                trigger((service.next_service_id), next_service_row);
+                            }
 
-                    }
-                })
-            } else {
-                alert('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
-                executionErrorLogo(service_id);
+                        }
+                    })
+                } else {
+                    alert('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
+                    executionErrorLogo(service_id);
+                }
+            } else if (service.execution == 'scenario') {
+                var job_scenario_api = properties.get('job_scenario_api');
+                var body_data = { cmn_scenario_id: service.cmn_scenario_id }
+                axios.post(job_scenario_api, body_data).then(({ data }) => {
+                    console.log(data)
+                });
             }
+
         } else {
             alert('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
             executionErrorLogo(service_id);
@@ -359,6 +370,7 @@ function rpa_schedule_show(service_id) {
         data
     }) => {
         console.log(data);
+        // return 0;
         var file_path_info = data.file_path_info;
         var schedule_array = data.schedule_array;
         var job_info = data.job_info;
@@ -469,7 +481,7 @@ function rpa_schedule_show(service_id) {
         }
         if (job_api_scenario_list.length != 0) {
             // var cmn_scenario_ids=[];
-            var scenario_html = "";
+            var scenario_html = '<option value="">Please select scenario</option>';
             job_api_scenario_list.forEach(element => {
                 // cmn_scenario_ids.push(element.cmn_scenario_id)
                 scenario_html += '<option value="' + element.cmn_scenario_id + '"' + (job_info != null ? (element.cmn_scenario_id == job_info.cmn_scenario_id ? "selected" : "") : "") + '>' + element.name + '</option>'

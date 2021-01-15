@@ -64,6 +64,7 @@ $(document).ready(function() {
     // setInterval(pathExecuteAll, 10000);
     // Service1 Process with time match 
     setInterval(trigger, trigger_execution_time);
+    // setInterval(trigger, trigger_execution_time, 1, 0);
     // setInterval(time_match, trigger_execution_time);
     // setInterval(service2Process, trigger_execution_time);
     // setInterval(service3Process, trigger_execution_time);

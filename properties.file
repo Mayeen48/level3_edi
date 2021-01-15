@@ -1,5 +1,5 @@
-# user_name=byr01@test.jp
-user_name=super_admin@jacos.co.jp
+user_name=byr01@test.jp
+# user_name=super_admin@jacos.co.jp
 #user_name=user@jacos.co.jp
 password=Qe75ymSr
 login_url=http://localhost/jcs/api/get_user_login

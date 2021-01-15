@@ -7,44 +7,52 @@
 // Time match function 
 // var reqest_ulr = '';
 function trigger(service_id = null, service_traking_number = 0) {
-    if (service_id == null) {
-        var service_id = $("#service_info_table > tbody > tr:eq(0)").attr('service-id');
+    var service_id_array = [];
+    var traking_number_array = [];
+    if (service_id == null || service_id == 0) {
+        // var service_id = $("#service_info_table > tbody > tr:eq(0)").attr('service-id');
+        $("#service_info_table > tbody > tr").each(function() {
+            var service_id_in_row = $(this).attr('service-id');
+            service_id_array.push(service_id_in_row)
+            traking_number_array.push($(this).index())
+        });
+    } else {
+        service_id_array.push(service_id)
+        traking_number_array.push(service_traking_number)
     }
-
-    if (!service_id) {
+    // console.log(service_id_array);
+    // console.log(traking_number_array);
+    if (service_id_array.length == 0) {
         console.log("No service ID found");
         return 0;
     }
-    time_date_match(service_id, 1, function(time_data) {
-        // console.log(time_data);
-        var exec_flag = 0;
-        if (time_data == 0) {
-            time_date_match(service_id, 2, function(date_data) {
-                // console.log(date_data)
-                if (date_data == 0) {
-                    folderCheck(service_id, function(folder_data) {
-                        // console.log(folder_data);
-                        if (folder_data == 0) {
-                            // API Check Function will added 
-                            // APICheck(service_id, 0)
-                        } else {
-                            // exec_flag = 1;
-                            jobExec(service_id, service_traking_number)
-                        }
-                    })
-                } else {
-                    // exec_flag = 1;
-                    jobExec(service_id, service_traking_number)
-                }
-            })
-        } else {
-            // exec_flag = 1;
-            jobExec(service_id, service_traking_number)
-        }
-        // if (exec_flag == 1) {
-        //     jobExec(service_id, service_traking_number)
-        // }
-    });
+    // return 0;
+    for (let i = 0; i < service_id_array.length; i++) {
+        service_id = service_id_array[i];
+        service_traking_number = traking_number_array[i];
+
+        time_date_match(service_id, 1, function(time_data) {
+            if (time_data == 0) {
+                time_date_match(service_id, 2, function(date_data) {
+                    if (date_data == 0) {
+                        folderCheck(service_id, function(folder_data) {
+                            if (folder_data == 0) {
+                                // API Check Function will added 
+                                // APICheck(service_id, 0)
+                            } else {
+                                jobExec(service_id, service_traking_number)
+                            }
+                        })
+                    } else {
+                        jobExec(service_id, service_traking_number)
+                    }
+                })
+            } else {
+                jobExec(service_id, service_traking_number)
+            }
+        });
+
+    }
 }
 
 
@@ -109,12 +117,14 @@ function folderCheck(service_id, callback) {
             }
             // }
         } else {
-            alert('Service ' + (service_row + 1) + ' Folder setup not completed yet');
+            console.log('Service ' + (service_row + 1) + ' Folder setup not completed yet');
+            // alert('Service ' + (service_row + 1) + ' Folder setup not completed yet');
             // console.log("Service setup not completed yet");
             // executionErrorLogo(service_id)
         }
     }).catch(() => {
-        alert('Service ' + (service_row + 1) + ' Folder setup not completed yet');
+        // alert('Service ' + (service_row + 1) + ' Folder setup not completed yet');
+        console.log('Service ' + (service_row + 1) + ' Folder setup not completed yet');
     });
 }
 
@@ -174,19 +184,24 @@ function jobExec(service_id, service_traking_number = null) {
                         }
                     })
                 } else {
-                    alert('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
+                    // alert('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
+                    console.log('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
                     executionErrorLogo(service_id);
                 }
             } else if (service.execution == 'scenario') {
                 var job_scenario_api = properties.get('job_scenario_api');
-                var body_data = { cmn_scenario_id: service.cmn_scenario_id }
+                var user_name = properties.get('user_name');
+                var password = properties.get('password');
+                var body_data = { email: user_name, password: password, scenario_id: service.cmn_scenario_id }
                 axios.post(job_scenario_api, body_data).then(({ data }) => {
                     console.log(data)
+                    executionEndLogo(service_id);
                 });
             }
 
         } else {
-            alert('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
+            console.log('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
+            // alert('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
             executionErrorLogo(service_id);
         }
     })
@@ -459,7 +474,7 @@ function rpa_schedule_show(service_id) {
             } else {
                 $("#job_execution_flag").prop("checked", false);
             }
-            if (job_info['execution'] == 'scenatio') {
+            if (job_info['execution'] == 'scenario') {
                 $("#scenario_execute").prop("checked", true);
             } else if (job_info['execution'] == 'batch') {
                 $("#batch_execute").prop("checked", true);

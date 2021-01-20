@@ -20,6 +20,9 @@ job_scenario_api=http://localhost/jcs/api/job_scenario
 #Time must be in seconds
 #Default trigger_execution_time=60 sec
 trigger_execution_time=60
+# File data value must be LV3_FILE_DATA
+scenario_array={ "11":{"file_data":"LV3_FILE_DATA","send_data1":"test01","send_data2":"test02","send_data3":"test03"}, "12":{"send_data1":"test01","send_data2":"test02"} }
+# scenario_array=[11=>[file_data=$FOUND_FILE_PATH], 12=>[send_data='test01',send_data2='test02'],]
 
 # schedule_file_data_url=http://localhost/level3_server/schedule_file_data
 

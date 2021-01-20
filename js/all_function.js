@@ -7,6 +7,7 @@
 // Time match function 
 // var reqest_ulr = '';
 function trigger(service_id = null, service_traking_number = 0) {
+    // console.log(service_id)
     var service_id_array = [];
     var traking_number_array = [];
     if (service_id == null || service_id == 0) {
@@ -103,19 +104,20 @@ function folderCheck(service_id, callback) {
     }) => {
         var service = data.service;
         if (!jQuery.isEmptyObject(service)) {
-            // callback(1);
-            // executionEndLogo(service_id);
-            // if (service_traking_number != null) {
-            //     callback(1);
-            // } else {
-            if (service.job_execution_flag) {
-                callback(1);
+            let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
+            if (files_of_folder.length > 0) {
+                if (service.job_execution_flag) {
+                    callback(1);
+                } else {
+                    callback(0);
+                    // executionEndLogo(service_id);
+                    console.log("Job execution off");
+                }
             } else {
                 callback(0);
                 // executionEndLogo(service_id);
-                console.log("Job execution off");
+                console.log("Checked folder is empty");
             }
-            // }
         } else {
             console.log('Service ' + (service_row + 1) + ' Folder setup not completed yet');
             // alert('Service ' + (service_row + 1) + ' Folder setup not completed yet');
@@ -128,7 +130,7 @@ function folderCheck(service_id, callback) {
     });
 }
 
-function APICheck(service_id, service_traking_number = null) {
+function APICheck(service_id, callback) {
 
 }
 
@@ -176,8 +178,6 @@ function jobExec(service_id, service_traking_number = null) {
                             executionEndLogo(service_id);
                             if (service.next_service_id) {
                                 var next_service_row = $('#service_info_table tbody tr[service-id="' + service.next_service_id + '"]').index();
-                                // var next_service_row = $("table").find("[service-id='" + service.next_service_id + "']").index();
-                                console.log(next_service_row);
                                 trigger((service.next_service_id), next_service_row);
                             }
 
@@ -189,14 +189,67 @@ function jobExec(service_id, service_traking_number = null) {
                     executionErrorLogo(service_id);
                 }
             } else if (service.execution == 'scenario') {
+
                 var job_scenario_api = properties.get('job_scenario_api');
                 var user_name = properties.get('user_name');
                 var password = properties.get('password');
-                var body_data = { email: user_name, password: password, scenario_id: service.cmn_scenario_id }
-                axios.post(job_scenario_api, body_data).then(({ data }) => {
-                    console.log(data)
-                    executionEndLogo(service_id);
-                });
+                var scenario_array = JSON.parse(properties.get('scenario_array'))[service.cmn_scenario_id];
+                var scenario_array_length = Object.keys(scenario_array).length;
+                if (scenario_array) {
+                    var formData = new FormData();
+                    formData.append('scenario_id', service.cmn_scenario_id);
+                    formData.append('email', user_name);
+                    formData.append('password', password);
+                    for (let i = 0; i < scenario_array_length; i++) {
+                        const array_key = Object.keys(scenario_array)[i];
+                        const array_value = Object.values(scenario_array)[i];
+                        if (array_value == "LV3_FILE_DATA") {
+                            files_of_folder = fs.readdirSync(service.check_folder_path + "/");
+                            if (files_of_folder.length > 0) {
+                                let file_url_full = service.check_folder_path + '/' + files_of_folder[0]
+                                if (files_test(file_url_full)) {
+                                    formData.append(array_key, new Blob([files_of_folder[0]]), file_url_full);
+                                }
+                            } else {
+                                console.log("Folder is empty")
+                            }
+
+                        } else {
+                            formData.append(array_key, array_value);
+                        }
+                    }
+                    axios.post(job_scenario_api, formData).then(({ data }) => {
+                        console.log(data)
+                        executionEndLogo(service_id);
+                    });
+                    // try {
+
+                    //     var files_of_folder = fs.readdirSync(scenario_array.file_data + "/");
+                    //     console.log(files_of_folder);
+                    //     // if (files) {
+                    //     for (let j = 0; j < files_of_folder.length; j++) {
+                    //         let file_url_full = scenario_array.file_data + '/' + files_of_folder[j]
+                    //         console.log(file_url_full)
+                    //         if (files_test(file_url_full)) {
+
+
+                    //             formData.append('file', new Blob([files_of_folder[j]]), file_url_full);
+                    //             // for (var value of formData.values()) {
+                    //             //     console.log(value);
+                    //             // }
+                    //             axios.post(job_scenario_api, formData).then(({ data }) => {
+                    //                 console.log(data)
+                    //                 executionEndLogo(service_id);
+                    //             });
+                    //             // }
+                    //         }
+                    //     }
+                    // } catch (error) {
+                    //     console.log("Folder is empty");
+                    // }
+                } else {
+                    console.log("NO Scenario Found");
+                }
             }
 
         } else {

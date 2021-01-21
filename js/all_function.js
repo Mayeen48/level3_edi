@@ -38,8 +38,14 @@ function trigger(service_id = null, service_traking_number = 0) {
                     if (date_data == 0) {
                         folderCheck(service_id, function(folder_data) {
                             if (folder_data == 0) {
-                                // API Check Function will added 
-                                // APICheck(service_id, 0)
+                                APICheck(service_id, function(download_status, file_data) {
+                                    if (download_status == 0) {
+                                        console.log('File Not Downloaded from trigger')
+                                    } else {
+                                        console.log('File Downloaded from trigger')
+                                        jobExec(service_id, service_traking_number, file_data.file_path)
+                                    }
+                                })
                             } else {
                                 jobExec(service_id, service_traking_number)
                             }
@@ -131,11 +137,36 @@ function folderCheck(service_id, callback) {
 }
 
 function APICheck(service_id, callback) {
+    var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
+    // executionStartLogo(service_id)
+    var get_service_data_url = properties.get('get_service_data_url');
+    var body_data = {
+        service_id: service_id
+    }
+    axios.post(get_service_data_url, body_data).then(({
+        data
+    }) => {
+        // console.log(data)
+        var service = data.service;
+        axios.post(service.api_url, {}).then(({ data }) => {
+            // console.log(data)
+            var files_array = data.files_array;
+            if (data.status_code == 200) {
+                files_array.forEach(element => {
+                    file_save_from_url(element.file_name, element.file_path, service.api_folder_path, function(download_status) {
+                        callback(download_status, element)
+                    })
+                });
+            }
+        })
 
+    })
 }
 
-function jobExec(service_id, service_traking_number = null) {
+function jobExec(service_id, service_traking_number = null, file_name = '') {
+    // console.log("Started");
     executionStartLogo(service_id)
+    var order_history_data;
     var user_id = $('#user_id').val();
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = {
@@ -150,39 +181,81 @@ function jobExec(service_id, service_traking_number = null) {
         if (service) {
             if (service.execution == 'batch') {
                 if (service.batch_file_path != null) {
-                    fs.access(service.batch_file_path, fs.F_OK, (err) => {
-                        if (err) {
-                            // console.log("May be batch file or path is not valid");
-                            order_history_data = {
-                                process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                                user_id: user_id,
-                                service_id: (service.lv3_service_id),
-                                status: 'Error',
-                                execute_name: '発注データ',
-                                history_message: "May be batch file or path is not valid"
-                            }
-                            historyCreate(order_history_data);
-                            executionEndLogo(service_id);
-                            return 0;
-                        } else {
-                            shell.openItem(service.batch_file_path);
-                            order_history_data = {
-                                process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                                user_id: user_id,
-                                service_id: (service.lv3_service_id),
-                                status: 'Success',
-                                execute_name: '発注データ',
-                                history_message: "Job Executed Successfully"
-                            }
-                            historyCreate(order_history_data);
-                            executionEndLogo(service_id);
-                            if (service.next_service_id) {
-                                var next_service_row = $('#service_info_table tbody tr[service-id="' + service.next_service_id + '"]').index();
-                                trigger((service.next_service_id), next_service_row);
-                            }
-
+                    // =====my new code =====
+                    // console.log(service.batch_file_path);
+                    const exec = require('child_process').exec;
+                    const myShellScript = exec(service.batch_file_path + ' ' + file_name);
+                    myShellScript.stdout.on('data', (data) => {
+                        // shell.openItem(data);
+                        console.log(data);
+                        // do whatever you want here with data
+                        order_history_data = {
+                            process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                            user_id: user_id,
+                            service_id: (service.lv3_service_id),
+                            status: 'Success',
+                            execute_name: '発注データ',
+                            history_message: "Job Executed Successfully"
                         }
-                    })
+                        historyCreate(order_history_data);
+                        executionEndLogo(service_id);
+                        if (service.next_service_id) {
+                            var next_service_row = $('#service_info_table tbody tr[service-id="' + service.next_service_id + '"]').index();
+                            trigger((service.next_service_id), next_service_row);
+                        }
+                    });
+                    myShellScript.stderr.on('data', (data) => {
+                        console.error(data);
+                        order_history_data = {
+                            process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                            user_id: user_id,
+                            service_id: (service.lv3_service_id),
+                            status: 'Error',
+                            execute_name: '発注データ',
+                            history_message: "May be batch file or path is not valid"
+                        }
+                        historyCreate(order_history_data);
+                        executionEndLogo(service_id);
+                        return 0;
+                    });
+                    // // =====my new code =====
+                    // return 0;
+                    // fs.access(service.batch_file_path, fs.F_OK, (err) => {
+                    //     if (err) {
+                    //         // console.log("May be batch file or path is not valid");
+                    //         order_history_data = {
+                    //             process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                    //             user_id: user_id,
+                    //             service_id: (service.lv3_service_id),
+                    //             status: 'Error',
+                    //             execute_name: '発注データ',
+                    //             history_message: "May be batch file or path is not valid"
+                    //         }
+                    //         historyCreate(order_history_data);
+                    //         executionEndLogo(service_id);
+                    //         return 0;
+                    //     } else {
+
+                    //         return 0;
+
+                    //         shell.openItem(service.batch_file_path, " M");
+                    //         order_history_data = {
+                    //             process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                    //             user_id: user_id,
+                    //             service_id: (service.lv3_service_id),
+                    //             status: 'Success',
+                    //             execute_name: '発注データ',
+                    //             history_message: "Job Executed Successfully"
+                    //         }
+                    //         historyCreate(order_history_data);
+                    //         executionEndLogo(service_id);
+                    //         if (service.next_service_id) {
+                    //             var next_service_row = $('#service_info_table tbody tr[service-id="' + service.next_service_id + '"]').index();
+                    //             trigger((service.next_service_id), next_service_row);
+                    //         }
+
+                    //     }
+                    // })
                 } else {
                     // alert('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
                     console.log('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
@@ -704,7 +777,7 @@ function folder_create(dirPath) {
 
 }
 
-function file_save_from_url(file_name, file_url, file_move_path) {
+function file_save_from_url(file_name, file_url, file_move_path, callback) {
     fetch(file_url)
         .then(resp => resp.blob())
         .then(blob => {
@@ -715,10 +788,12 @@ function file_save_from_url(file_name, file_url, file_move_path) {
                     if (err) {
                         console.error(err);
                         console.log("File not saved to " + file_move_path);
+                        callback(0)
                         return
                     } else {
-                        // console.log('Shipment File saved')
-                        // console.log('納品ファイルが保存されました。')
+                        callback(1)
+                            // console.log('Shipment File saved')
+                            // console.log('納品ファイルが保存されました。')
                         console.log("File Saved");
                     }
 

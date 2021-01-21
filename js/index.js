@@ -755,7 +755,7 @@ $(document).ready(function() {
         var closest_tr = $(this).closest('tr');
         var row_number = closest_tr.index();
         var service_id = closest_tr.attr("service-id");
-        jobExec(service_id, row_number);
+        trigger(service_id, row_number);
         // if (row_number == 0) {
         //     service1Process(service_id, process_type = "Manual");
         // } else if (row_number == 1) {

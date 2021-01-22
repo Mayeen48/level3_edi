@@ -163,7 +163,7 @@ function APICheck(service_id, callback) {
     })
 }
 
-function jobExec(service_id, service_traking_number = null, file_name = '') {
+function jobExec(service_id, service_traking_number = null, file_path = '') {
     // console.log("Started");
     executionStartLogo(service_id)
     var order_history_data;
@@ -182,9 +182,13 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
             if (service.execution == 'batch') {
                 if (service.batch_file_path != null) {
                     // =====my new code =====
-                    // console.log(service.batch_file_path);
+                    console.log(service.api_folder_path);
                     const exec = require('child_process').exec;
-                    const myShellScript = exec(service.batch_file_path + ' ' + file_name);
+                    var batch_file_path = (service.batch_file_path).replace('LV3_FILE_PATH', file_path)
+                        // console.log(service.api_folder_path);
+                        // console.log(batch_file_path);
+                        // return 0;
+                    const myShellScript = exec(batch_file_path);
                     myShellScript.stdout.on('data', (data) => {
                         // shell.openItem(data);
                         console.log(data);

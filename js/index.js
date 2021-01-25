@@ -18,6 +18,8 @@ var axios = require('axios');
 // var properties = PropertiesReader('properties.file');
 try {
     var properties = PropertiesReader('properties.file');
+    var email = properties.get('user_name');
+    var password = properties.get('password');
 } catch (err) {
     // alert("Please add properties.file in root directory")
     alert("properties.fileが見つかりません。実行フォルダに配置してください。")

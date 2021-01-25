@@ -43,7 +43,7 @@ function trigger(service_id = null, service_traking_number = 0) {
                                         console.log('File Not Downloaded from trigger')
                                     } else {
                                         console.log('File Downloaded from trigger')
-                                        jobExec(service_id, service_traking_number, file_data.file_path)
+                                        jobExec(service_id, service_traking_number, file_data.file_name)
                                     }
                                 })
                             } else {
@@ -148,8 +148,8 @@ function APICheck(service_id, callback) {
     }) => {
         // console.log(data)
         var service = data.service;
-        axios.post(service.api_url, {}).then(({ data }) => {
-            // console.log(data)
+        axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
+            // console.log(email)
             var files_array = data.files_array;
             if (data.status_code == 200) {
                 files_array.forEach(element => {
@@ -163,7 +163,7 @@ function APICheck(service_id, callback) {
     })
 }
 
-function jobExec(service_id, service_traking_number = null, file_path = '') {
+function jobExec(service_id, service_traking_number = null, file_name = '') {
     // console.log("Started");
     executionStartLogo(service_id)
     var order_history_data;
@@ -182,12 +182,9 @@ function jobExec(service_id, service_traking_number = null, file_path = '') {
             if (service.execution == 'batch') {
                 if (service.batch_file_path != null) {
                     // =====my new code =====
-                    console.log(service.api_folder_path);
+                    let file_path = service.api_folder_path + '/' + file_name
                     const exec = require('child_process').exec;
                     var batch_file_path = (service.batch_file_path).replace('LV3_FILE_PATH', file_path)
-                        // console.log(service.api_folder_path);
-                        // console.log(batch_file_path);
-                        // return 0;
                     const myShellScript = exec(batch_file_path);
                     myShellScript.stdout.on('data', (data) => {
                         // shell.openItem(data);
@@ -222,60 +219,22 @@ function jobExec(service_id, service_traking_number = null, file_path = '') {
                         executionEndLogo(service_id);
                         return 0;
                     });
-                    // // =====my new code =====
-                    // return 0;
-                    // fs.access(service.batch_file_path, fs.F_OK, (err) => {
-                    //     if (err) {
-                    //         // console.log("May be batch file or path is not valid");
-                    //         order_history_data = {
-                    //             process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                    //             user_id: user_id,
-                    //             service_id: (service.lv3_service_id),
-                    //             status: 'Error',
-                    //             execute_name: '発注データ',
-                    //             history_message: "May be batch file or path is not valid"
-                    //         }
-                    //         historyCreate(order_history_data);
-                    //         executionEndLogo(service_id);
-                    //         return 0;
-                    //     } else {
-
-                    //         return 0;
-
-                    //         shell.openItem(service.batch_file_path, " M");
-                    //         order_history_data = {
-                    //             process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                    //             user_id: user_id,
-                    //             service_id: (service.lv3_service_id),
-                    //             status: 'Success',
-                    //             execute_name: '発注データ',
-                    //             history_message: "Job Executed Successfully"
-                    //         }
-                    //         historyCreate(order_history_data);
-                    //         executionEndLogo(service_id);
-                    //         if (service.next_service_id) {
-                    //             var next_service_row = $('#service_info_table tbody tr[service-id="' + service.next_service_id + '"]').index();
-                    //             trigger((service.next_service_id), next_service_row);
-                    //         }
-
-                    //     }
-                    // })
+                    // =====my new code =====
                 } else {
-                    // alert('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
                     console.log('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
                     executionErrorLogo(service_id);
                 }
             } else if (service.execution == 'scenario') {
 
                 var job_scenario_api = properties.get('job_scenario_api');
-                var user_name = properties.get('user_name');
-                var password = properties.get('password');
+                // var email = properties.get('user_name');
+                // var password = properties.get('password');
                 var scenario_array = JSON.parse(properties.get('scenario_array'))[service.cmn_scenario_id];
                 var scenario_array_length = Object.keys(scenario_array).length;
                 if (scenario_array) {
                     var formData = new FormData();
                     formData.append('scenario_id', service.cmn_scenario_id);
-                    formData.append('email', user_name);
+                    formData.append('email', email);
                     formData.append('password', password);
                     for (let i = 0; i < scenario_array_length; i++) {
                         const array_key = Object.keys(scenario_array)[i];
@@ -299,31 +258,6 @@ function jobExec(service_id, service_traking_number = null, file_path = '') {
                         console.log(data)
                         executionEndLogo(service_id);
                     });
-                    // try {
-
-                    //     var files_of_folder = fs.readdirSync(scenario_array.file_data + "/");
-                    //     console.log(files_of_folder);
-                    //     // if (files) {
-                    //     for (let j = 0; j < files_of_folder.length; j++) {
-                    //         let file_url_full = scenario_array.file_data + '/' + files_of_folder[j]
-                    //         console.log(file_url_full)
-                    //         if (files_test(file_url_full)) {
-
-
-                    //             formData.append('file', new Blob([files_of_folder[j]]), file_url_full);
-                    //             // for (var value of formData.values()) {
-                    //             //     console.log(value);
-                    //             // }
-                    //             axios.post(job_scenario_api, formData).then(({ data }) => {
-                    //                 console.log(data)
-                    //                 executionEndLogo(service_id);
-                    //             });
-                    //             // }
-                    //         }
-                    //     }
-                    // } catch (error) {
-                    //     console.log("Folder is empty");
-                    // }
                 } else {
                     console.log("NO Scenario Found");
                 }

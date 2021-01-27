@@ -1,2 +1,0 @@
-user_name=super_admin@jacos.co.jp
-password=Qe75ymSr

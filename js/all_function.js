@@ -37,9 +37,11 @@ function trigger(service_id = null, service_traking_number = 0) {
                 time_date_match(service_id, 2, function(date_data) {
                     if (date_data == 0) {
                         folderCheck(service_id, function(folder_data) {
+                            // console.log(folder_data);
+                            // return 0;
                             if (folder_data == 0) {
-                                APICheck(service_id, function(download_status, file_data) {
-                                    if (download_status == 0) {
+                                APICheck(service_id, function(job_execute_flg, file_data) {
+                                    if (job_execute_flg == 0) {
                                         console.log('File Not Downloaded from trigger')
                                     } else {
                                         console.log('File Downloaded from trigger')
@@ -109,10 +111,14 @@ function folderCheck(service_id, callback) {
         data
     }) => {
         var service = data.service;
+        // console.log(service);
+        // return 0;
         if (!jQuery.isEmptyObject(service)) {
             let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
             if (files_of_folder.length > 0) {
+                // console.log("File Found");
                 if (service.job_execution_flag) {
+                    // console.log("File Found");
                     callback(1);
                 } else {
                     callback(0);
@@ -147,19 +153,33 @@ function APICheck(service_id, callback) {
         data
     }) => {
         // console.log(data)
-        var service = data.service;
-        axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
-            // console.log(email)
-            var files_array = data.files_array;
-            if (data.status_code == 200) {
-                files_array.forEach(element => {
-                    file_save_from_url(element.file_name, element.file_path, service.api_folder_path, function(download_status) {
-                        callback(download_status, element)
-                    })
-                });
-            }
-        })
 
+        var service = data.service;
+        // console.log(service.api_url)
+        if (service.api_url) {
+            axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
+                // console.log(data)
+                // return 0;
+                var files_array = data.files_array;
+                if (data.status_code == 200) {
+                    var job_execute_flg = true;
+
+                    if (files_array.length == 0) {
+                        callback(job_execute_flg, element)
+                    }
+                    files_array.forEach(element => {
+                        file_save_from_url(element.file_name, element.file_path, service.api_folder_path, function(download_status) {
+                            job_execute_flg = download_status;
+                            callback(job_execute_flg, element)
+                        })
+                    });
+                }
+            }).catch(() => {
+                alert('May be API is problem');
+            });
+        } else {
+            console.log('API Trigger not set')
+        }
     })
 }
 
@@ -230,8 +250,8 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                 // var email = properties.get('user_name');
                 // var password = properties.get('password');
                 var scenario_array = JSON.parse(properties.get('scenario_array'))[service.cmn_scenario_id];
-                var scenario_array_length = Object.keys(scenario_array).length;
                 if (scenario_array) {
+                    var scenario_array_length = Object.keys(scenario_array).length;
                     var formData = new FormData();
                     formData.append('scenario_id', service.cmn_scenario_id);
                     formData.append('email', email);
@@ -240,11 +260,11 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                         const array_key = Object.keys(scenario_array)[i];
                         const array_value = Object.values(scenario_array)[i];
                         if (array_value == "LV3_FILE_DATA") {
-                            files_of_folder = fs.readdirSync(service.check_folder_path + "/");
+                            let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
                             if (files_of_folder.length > 0) {
                                 let file_url_full = service.check_folder_path + '/' + files_of_folder[0]
                                 if (files_test(file_url_full)) {
-                                    formData.append(array_key, new Blob([files_of_folder[0]]), file_url_full);
+                                    formData.append(array_key, new Blob([fs.readFileSync(file_url_full)]), file_url_full);
                                 }
                             } else {
                                 console.log("Folder is empty")
@@ -254,12 +274,16 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                             formData.append(array_key, array_value);
                         }
                     }
-                    axios.post(job_scenario_api, formData).then(({ data }) => {
+                    axios.post(job_scenario_api, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }).then(({ data }) => {
                         console.log(data)
                         executionEndLogo(service_id);
                     });
                 } else {
-                    console.log("NO Scenario Found");
+                    console.log('Scenario ' + service.cmn_scenario_id + ' Not found in properties file');
                 }
             }
 
@@ -439,6 +463,7 @@ function rpa_schedule_show(service_id) {
     // const request = require('request');
     // console.log(service_id);
     var user_id = $('#user_id').val();
+    // console.log(user_id);
     var user_data = {
         user_id: user_id,
         service_id: service_id
@@ -563,7 +588,7 @@ function rpa_schedule_show(service_id) {
             var scenario_html = '<option value="">Please select scenario</option>';
             job_api_scenario_list.forEach(element => {
                 // cmn_scenario_ids.push(element.cmn_scenario_id)
-                scenario_html += '<option value="' + element.cmn_scenario_id + '"' + (job_info != null ? (element.cmn_scenario_id == job_info.cmn_scenario_id ? "selected" : "") : "") + '>' + element.name + '</option>'
+                scenario_html += '<option value="' + element.cmn_scenario_id + '"' + (job_info != null ? (element.cmn_scenario_id == job_info.cmn_scenario_id ? "selected" : "") : "") + '>' + element.cmn_scenario_id + ' ' + element.name + '</option>'
             });
             $("#cmn_scenario_id").html(scenario_html);
             // $("#cmn_scenario_id").val(cmn_scenario_ids); 
@@ -746,6 +771,7 @@ function file_save_from_url(file_name, file_url, file_move_path, callback) {
 }
 
 function customerInfo(user_id = null) {
+    // console.log(user_id)
     // var user_id = $('#user_id').val();
     var get_customer_url = properties.get('get_customer_url');
     var body_data = {
@@ -761,7 +787,7 @@ function customerInfo(user_id = null) {
         var raw_html = '';
         for (let i = 0; i < customers_data.length; i++) {
             // const element = array[i];
-            raw_html += '<tr class="cust_info_row" cmn_connect_id="' + customers_data[i].cmn_connect_id + '" adm_user_id="' + customers_data[i].adm_user_id + '" partner-code="' + customers_data[i].partner_code + '" company-name="' + customers_data[i].company_name + '">';
+            raw_html += '<tr class="cust_info_row" cmn_connect_id="' + customers_data[i].cmn_connect_id + '" adm_user_id="' + user_id + '" partner-code="' + customers_data[i].partner_code + '" company-name="' + customers_data[i].company_name + '">';
             raw_html += '<td>' + (i + 1) + '</td>';
             raw_html += '<td>' + customers_data[i].company_name + '</td>';
             // raw_html += '<td>' + customers_data[i].partner_code + '</td>';
@@ -806,6 +832,7 @@ function historyCreate(history_data) {
 
 function history() {
     var user_id = $('#user_id').val();
+    // console.log(user_id)
     var body_data = {
         user_id: user_id
     }
@@ -813,7 +840,8 @@ function history() {
     axios.post(history_url, body_data).then(({
         data
     }) => {
-        histories = data.histories;
+        // console.log(data)
+        var histories = data.histories;
         var history_html = '';
         history_html += '<table class="table table-bordered" id="history_table">';
         history_html += '<thead>';
@@ -908,6 +936,7 @@ function areRefresh() {
     // $('.cust_info_row').attr('cmn_connect_id', cmn_connect_id).addClass('bg-secondary text-white');
     $('.cust_info_row:eq(0)').addClass('bg-secondary text-white');
     // $('#' + cmn_connect_id).addClass('bg-secondary text-white');
+    // console.log(adm_user_id)
     serviceNameShow({
         cmn_connect_id: cmn_connect_id,
         adm_user_id: adm_user_id

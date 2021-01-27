@@ -1,11 +1,11 @@
 {
     "name": "level3",
-    "productName": "level3",
+    "productName": "Level3",
     "version": "1.0.0",
-    "description": "Level3 application for ryutsu van project",
+    "description": "Level3 application for JCS project",
     "main": "main.js",
     "build": {
-        "appId": "your.id",
+        "appId": "20210126",
         "mac": {
             "category": "your.app.category.type"
         },

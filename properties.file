@@ -1,5 +1,5 @@
-user_name=byr01@test.jp
-# user_name=super_admin@jacos.co.jp
+# user_name=byr01@test.jp
+user_name=super_admin@jacos.co.jp
 #user_name=user@jacos.co.jp
 password=Qe75ymSr
 login_url=http://localhost/jcs/api/get_user_login
@@ -21,7 +21,7 @@ job_scenario_api=http://localhost/jcs/api/job_scenario
 #Default trigger_execution_time=60 sec
 trigger_execution_time=60
 # File data value must be LV3_FILE_DATA
-scenario_array={ "11":{"file_data":"LV3_FILE_DATA","send_data1":"test01","send_data2":"test02","send_data3":"test03"}, "12":{"send_data1":"test01","send_data2":"test02"} }
+scenario_array={ "4":{"up_file":"LV3_FILE_DATA","order_id":1,"cmn_connect_id":"1"}, "12":{"send_data1":"test01","send_data2":"test02"} }
 # scenario_array=[11=>[file_data=$FOUND_FILE_PATH], 12=>[send_data='test01',send_data2='test02'],]
 
 # schedule_file_data_url=http://localhost/level3_server/schedule_file_data

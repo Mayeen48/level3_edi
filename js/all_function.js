@@ -1,17 +1,7 @@
-// const electron = require('electron').remote;
-// var PropertiesReader = require('properties-reader');
-// var window = electron.getCurrentWindow();
-// var request = require('request');
-// var fs = require('fs');
-// var FileSaver = require('file-saver');
-// Time match function 
-// var reqest_ulr = '';
 function trigger(service_id = null, service_traking_number = 0) {
-    // console.log(service_id)
     var service_id_array = [];
     var traking_number_array = [];
     if (service_id == null || service_id == 0) {
-        // var service_id = $("#service_info_table > tbody > tr:eq(0)").attr('service-id');
         $("#service_info_table > tbody > tr").each(function() {
             var service_id_in_row = $(this).attr('service-id');
             service_id_array.push(service_id_in_row)
@@ -21,13 +11,10 @@ function trigger(service_id = null, service_traking_number = 0) {
         service_id_array.push(service_id)
         traking_number_array.push(service_traking_number)
     }
-    // console.log(service_id_array);
-    // console.log(traking_number_array);
     if (service_id_array.length == 0) {
         console.log("No service ID found");
         return 0;
     }
-    // return 0;
     for (let i = 0; i < service_id_array.length; i++) {
         service_id = service_id_array[i];
         service_traking_number = traking_number_array[i];
@@ -37,8 +24,6 @@ function trigger(service_id = null, service_traking_number = 0) {
                 time_date_match(service_id, 2, function(date_data) {
                     if (date_data == 0) {
                         folderCheck(service_id, function(folder_data) {
-                            // console.log(folder_data);
-                            // return 0;
                             if (folder_data == 0) {
                                 APICheck(service_id, function(job_execute_flg, file_data) {
                                     if (job_execute_flg == 0) {
@@ -77,7 +62,6 @@ function time_date_match(service_id, type = 1, callback) {
             data
         }) => {
             var schedule_date_time_data = data.schedule_date_time_data;
-            // console.log(schedule_date_time_data);
             if (schedule_date_time_data.length) {
                 if (jQuery.inArray(true, schedule_date_time_data) != -1) {
                     callback(1);
@@ -89,20 +73,15 @@ function time_date_match(service_id, type = 1, callback) {
                 callback(0);
             }
         }).catch((e) => {
-            // console.log("errr------", e);
             alert("接続用API設定を確認してください");
-            // ret_val = 0;
         });
     } else {
         console.log("No service id found");
-        // ret_val = 0;
     }
-    // return ret_val;
 }
 
 function folderCheck(service_id, callback) {
     var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
-    // executionStartLogo(service_id)
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = {
         service_id: service_id
@@ -111,40 +90,35 @@ function folderCheck(service_id, callback) {
         data
     }) => {
         var service = data.service;
-        // console.log(service);
-        // return 0;
         if (!jQuery.isEmptyObject(service)) {
-            let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
-            if (files_of_folder.length > 0) {
-                // console.log("File Found");
-                if (service.job_execution_flag) {
-                    // console.log("File Found");
-                    callback(1);
+            if (service.path_execution_flag) {
+                let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
+                if (files_of_folder.length > 0) {
+                    if (service.job_execution_flag) {
+                        callback(1);
+                    } else {
+                        callback(0);
+                        console.log("Job execution off");
+                    }
                 } else {
                     callback(0);
-                    // executionEndLogo(service_id);
-                    console.log("Job execution off");
+                    console.log("Checked folder is empty");
                 }
             } else {
+                console.log("Path execution off");
                 callback(0);
-                // executionEndLogo(service_id);
-                console.log("Checked folder is empty");
             }
+
         } else {
             console.log('Service ' + (service_row + 1) + ' Folder setup not completed yet');
-            // alert('Service ' + (service_row + 1) + ' Folder setup not completed yet');
-            // console.log("Service setup not completed yet");
-            // executionErrorLogo(service_id)
         }
     }).catch(() => {
-        // alert('Service ' + (service_row + 1) + ' Folder setup not completed yet');
         console.log('Service ' + (service_row + 1) + ' Folder setup not completed yet');
     });
 }
 
 function APICheck(service_id, callback) {
     var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
-    // executionStartLogo(service_id)
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = {
         service_id: service_id
@@ -152,14 +126,9 @@ function APICheck(service_id, callback) {
     axios.post(get_service_data_url, body_data).then(({
         data
     }) => {
-        // console.log(data)
-
         var service = data.service;
-        // console.log(service.api_url)
         if (service.api_url) {
             axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
-                // console.log(data)
-                // return 0;
                 var files_array = data.files_array;
                 if (data.status_code == 200) {
                     var job_execute_flg = true;
@@ -184,7 +153,6 @@ function APICheck(service_id, callback) {
 }
 
 function jobExec(service_id, service_traking_number = null, file_name = '') {
-    // console.log("Started");
     executionStartLogo(service_id)
     var order_history_data;
     var user_id = $('#user_id').val();
@@ -196,8 +164,6 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
         data
     }) => {
         var service = data.service;
-        // console.log(service)
-        // return 0;
         if (service) {
             if (service.execution == 'batch') {
                 if (service.batch_file_path != null) {
@@ -207,8 +173,6 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                     var batch_file_path = (service.batch_file_path).replace('LV3_FILE_PATH', file_path)
                     const myShellScript = exec(batch_file_path);
                     myShellScript.stdout.on('data', (data) => {
-                        // shell.openItem(data);
-                        console.log(data);
                         // do whatever you want here with data
                         order_history_data = {
                             process_type: service_traking_number == null ? 'Auto' : 'Manual',
@@ -247,8 +211,6 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
             } else if (service.execution == 'scenario') {
 
                 var job_scenario_api = properties.get('job_scenario_api');
-                // var email = properties.get('user_name');
-                // var password = properties.get('password');
                 var scenario_array = JSON.parse(properties.get('scenario_array'))[service.cmn_scenario_id];
                 if (scenario_array) {
                     var scenario_array_length = Object.keys(scenario_array).length;
@@ -289,122 +251,10 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
 
         } else {
             console.log('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
-            // alert('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
             executionErrorLogo(service_id);
         }
     })
 }
-
-// function serviceProcess(service_id = null, service_traking_number = null) {
-//     executionStartLogo(service_traking_number)
-//     var user_id = $('#user_id').val();
-//     if (service_traking_number != null) {
-//         var service_id = $('#service_info_table > tbody > tr:eq(' + service_traking_number + ')').attr('service-id')
-//     }
-//     // if (!service_id) {
-//     //     console.log("No service ID found");
-//     //     return 0;
-//     // }
-//     var get_service_data_url = properties.get('get_service_data_url');
-//     var body_data = { service_id: service_id, service_traking_number: (service_traking_number + 1) }
-//     axios.post(get_service_data_url, body_data).then(({ data }) => {
-//         console.log(data);
-//         // return 0;
-//         var service = data.service;
-//         if (!jQuery.isEmptyObject(service)) {
-//             if (service_traking_number != null) {
-//                 // console.log("Condition");
-//                 // return 0;
-//                 serviceExecution(service, user_id, service_traking_number)
-//             } else {
-//                 if (service.job_execution_flag) {
-//                     serviceExecution(service, user_id, 0)
-//                 } else {
-//                     executionEndLogo(0);
-//                     console.log("Job execution off");
-//                 }
-//             }
-//         } else {
-//             alert('Service ' + (service_traking_number + 1) + ' setup not completed yet');
-//             // console.log("Service setup not completed yet");
-//             executionErrorLogo(service_traking_number)
-//         }
-//     }).catch(() => {
-//         alert('Service ' + (service_traking_number + 1) + ' setup not completed yet');
-//     });
-// }
-
-// function serviceExecution(service, user_id, service_traking_number) {
-//     var order_history_data;
-//     var files = [];
-//     try {
-//         var files_of_folder = fs.readdirSync(service.check_folder_path + "/");
-//         // if (files) {
-//         for (let j = 0; j < files_of_folder.length; j++) {
-//             if (files_test(service.check_folder_path + '/' + files_of_folder[j])) {
-//                 files.push(files_of_folder[j])
-//             }
-//         }
-
-//     } catch (error) {
-//         console.log("Folder is empty");
-//         executionErrorLogo(service_traking_number)
-//     }
-//     // console.log(files)
-//     if (files.length) {
-//         fs.access(service.batch_file_path, fs.F_OK, (err) => {
-//             if (err) {
-//                 // console.log("May be batch file or path is not valid");
-//                 order_history_data = {
-//                     process_type: service_traking_number == null ? 'Auto' : 'Manual',
-//                     user_id: user_id,
-//                     service_id: (service.lv3_service_id),
-//                     status: 'Error',
-//                     execute_name: '発注データ',
-//                     history_message: "May be batch file or path is not valid for order2"
-//                 }
-//                 historyCreate(order_history_data);
-//                 executionEndLogo(service_traking_number);
-//                 return 0;
-//             } else {
-//                 shell.openItem(service.batch_file_path);
-//                 order_history_data = {
-//                     process_type: service_traking_number == null ? 'Auto' : 'Manual',
-//                     user_id: user_id,
-//                     service_id: (service.lv3_service_id),
-//                     status: 'Success',
-//                     execute_name: '発注データ',
-//                     history_message: "Order2 Job Executed Successfully"
-//                 }
-//                 historyCreate(order_history_data);
-//                 executionEndLogo(service_traking_number);
-//                 if (service.next_service_id) {
-//                     var next_service_row = $("table").find("[service-id='" + service.next_service_id + "']").index();
-//                     serviceProcess((service.next_service_id), next_service_row)
-//                 }
-
-//             }
-//         })
-//     } else {
-//         // console.log("Folder is empty");
-//         fs.access(service.check_folder_path, fs.F_OK, (err) => {
-//             console.log(err);
-//             if (err) {
-//                 order_history_data = {
-//                     process_type: service_traking_number == null ? 'Auto' : 'Manual',
-//                     user_id: user_id,
-//                     service_id: (service.lv3_service_id),
-//                     status: 'Error',
-//                     execute_name: '発注データ',
-//                     history_message: "May be check folder path is not valid or it is empty for order2"
-//                 }
-//                 historyCreate(order_history_data);
-//             }
-//         });
-//         executionEndLogo(service_traking_number);
-//     }
-// }
-
 
 function executionStartLogo(service_id) {
     var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
@@ -440,9 +290,6 @@ function file_download(text, filename) {
 
     document.body.removeChild(element);
 }
-// function abortTimer() { // to be called when you want to stop the timer
-//     clearInterval(tid);
-//   }
 // current time return 
 function cur_time() {
     var dt = new Date();
@@ -459,11 +306,7 @@ function time_process(time) {
 
 // API Data 
 function rpa_schedule_show(service_id) {
-    // console.log("In function: " + customer_id);
-    // const request = require('request');
-    // console.log(service_id);
     var user_id = $('#user_id').val();
-    // console.log(user_id);
     var user_data = {
         user_id: user_id,
         service_id: service_id
@@ -473,15 +316,11 @@ function rpa_schedule_show(service_id) {
     getRpaData.then(({
         data
     }) => {
-        console.log(data);
-        // return 0;
         var file_path_info = data.file_path_info;
         var schedule_array = data.schedule_array;
         var job_info = data.job_info;
         var job_api_scenario_list = data.job_api_scenario_list;
         var all_service_data = data.all_service_data;
-        // console.log(schedule_array[1].day);
-        // return 0;
         if (schedule_array.length != 0) {
             var html_day = '';
             var html_day_sp = '';
@@ -528,19 +367,12 @@ function rpa_schedule_show(service_id) {
             $('#week_data tbody').html('<tr><td colspan="10"><input type="hidden" id="no_data" value="0">データ無し</td></tr>');
             $('#date_specification_table tbody').html('<tr><td colspan="5"><input type="hidden" id="no_data_sp" value="0">データ無し</td></tr>');
         }
-        // console.log(file_path_info.length);
-        // file_path_info != null
         if (file_path_info != null) {
             if (file_path_info['path_execution_flag'] == 1) {
                 $("#path_execution_flag").prop("checked", true);
             } else {
                 $("#path_execution_flag").prop("checked", false);
             }
-            // if (file_path_info['shipment_patha_execution'] == 1) {
-            //     $("#shipment_path_execute").prop("checked", true);
-            // } else {
-            //     $("#shipment_path_execute").prop("checked", false);
-            // }
             $('#file_path_id').val(file_path_info['file_path_id']);
             $('#check_folder_path_box').val(file_path_info['check_folder_path']);
             $('#move_folder_path_box').val(file_path_info['moved_folder_path']);
@@ -555,9 +387,7 @@ function rpa_schedule_show(service_id) {
             $('#api_url').val('');
             $('#api_folder_path_box').val('');
         }
-        // job_info != null ||
         if (job_info != null) {
-            // console.log(job_info);
             if (job_info['job_execution_flag'] == 1) {
                 $("#job_execution_flag").prop("checked", true);
             } else {
@@ -570,38 +400,29 @@ function rpa_schedule_show(service_id) {
             }
 
             $('#job_update_id').val(job_info['lv3_job_id']);
-            // $('#api_path').val(job_info['api_path']);
             $('#batch_file_path_box').val(job_info['batch_file_path']);
-            // $('#shipment_file_path_box').val(file_path_info['shipment_path']);
 
         } else {
             $("#job_update_id").val('');
             $("#job_execution_flag").prop("checked", false);
             $("#scenario_execute").prop("checked", false);
             $("#batch_execute").prop("checked", false);
-            // $('#api_path').val('');
             $('#batch_file_path_box').val('');
-            // $('#shipment_file_path_box').val('');
         }
         if (job_api_scenario_list.length != 0) {
-            // var cmn_scenario_ids=[];
             var scenario_html = '<option value="">Please select scenario</option>';
             job_api_scenario_list.forEach(element => {
-                // cmn_scenario_ids.push(element.cmn_scenario_id)
                 scenario_html += '<option value="' + element.cmn_scenario_id + '"' + (job_info != null ? (element.cmn_scenario_id == job_info.cmn_scenario_id ? "selected" : "") : "") + '>' + element.cmn_scenario_id + ' ' + element.name + '</option>'
             });
             $("#cmn_scenario_id").html(scenario_html);
-            // $("#cmn_scenario_id").val(cmn_scenario_ids); 
         } else {
             $("#cmn_scenario_id").html('<option value="">No Scenario found</option>');
         }
         if (all_service_data.length != 0) {
+            var this_next_service = '';
             if (job_info != null) {
                 this_next_service = job_info.next_service_id;
-            } else {
-                this_next_service = '';
             }
-            // var next_service = '';
             var next_service = '<option value="">No Service</option>';
             all_service_data.forEach(service => {
                 next_service += '<option value="' + service.lv3_service_id + '" ' + (service.lv3_service_id == this_next_service ? 'selected ' : '') + '' + (service.lv3_service_id == service_id ? 'hidden' : '') + ' >' + service.service_name + '</option>';
@@ -612,17 +433,12 @@ function rpa_schedule_show(service_id) {
         }
         $('.loader').removeClass('d-block');
         $('.loader').addClass('d-none');
-        // if (modal_val == "modal_show") {
-        //     $('#schedule_modal').modal('show');
-        // }
     }).catch(() => {
-        // console.log("Please check your API url or internet connection");
         console.log("接続用API設定を確認してください");
     });
 }
 
 function user_login() {
-    // $('.load').addClass('d-block');
     var user_name = properties.get('user_name');
     var password = properties.get('password');
     var login_url = properties.get('login_url');
@@ -657,27 +473,7 @@ function user_login() {
         });
         // API Data 
     }
-
-    // });
 }
-
-// Text file read success function 
-// function read_text_file(file_name) {
-//     return new Promise(function(resolve, reject) {
-//         var lines = {};
-//         $.get(file_name, function(data) {
-
-//             var users = {};
-//             lines = data.split(",");
-//             $.each(lines, function(key, value) {
-//                 var prep = value.split("=");
-//                 users[prep[0]] = prep[1];
-//             });
-//             resolve(users);
-
-//         });
-//     });
-// }
 
 function alertCsvCount(myFile) {
     var contents = fs.readFileSync(myFile)
@@ -698,13 +494,10 @@ function moveFile(file_source_oath, file_move_path, moved_file_name) {
     var dest = path.resolve(file_move_path + "/", f);
     console.log(f);
     console.log(dest);
-    // return 0;
     fs.rename(file_source_oath + "/" + moved_file_name, dest, (err) => {
         if (err) throw err;
         else console.log('ファイル移動が完了しました。');
     });
-    // Copy file 
-    //     fs.createReadStream(input_path + file).pipe(fs.createWriteStream(output_path + name + date + extension));
 
 }
 
@@ -716,10 +509,8 @@ function fileNameChange(fileName) {
 
 function checkFileExt(filename) {
     filename = filename.toLowerCase();
-    // return filename.split('.').pop();
     var file_array = filename.split('.');
     return file_array[file_array.length - 1];
-    // return file_array[nameOrExt];
 }
 
 function checkFileName(filename) {
@@ -755,43 +546,32 @@ function file_save_from_url(file_name, file_url, file_move_path, callback) {
                         return
                     } else {
                         callback(1)
-                            // console.log('Shipment File saved')
-                            // console.log('納品ファイルが保存されました。')
                         console.log("File Saved");
                     }
 
                 })
             }
             reader.readAsArrayBuffer(blob)
-                // Direct File create with data 
-                // try { fs.writeFileSync(file_move_path + '/' + file_name, "Hellow world", 'utf-8'); } catch (e) { alert('Failed to save the file !'); }
 
         })
         .catch(() => console.log('File can not be downloaded!'));
 }
 
 function customerInfo(user_id = null) {
-    // console.log(user_id)
-    // var user_id = $('#user_id').val();
     var get_customer_url = properties.get('get_customer_url');
     var body_data = {
         user_id: user_id
     }
     var cusrUrlCall = axios.post(get_customer_url, body_data);
-    // var cusrUrlCall = requestUrl(get_customer_url, body_data);
     cusrUrlCall.then(({
         data
     }) => {
-        // console.log(data)
         var customers_data = data.customers_data;
         var raw_html = '';
         for (let i = 0; i < customers_data.length; i++) {
-            // const element = array[i];
             raw_html += '<tr class="cust_info_row" cmn_connect_id="' + customers_data[i].cmn_connect_id + '" adm_user_id="' + user_id + '" partner-code="' + customers_data[i].partner_code + '" company-name="' + customers_data[i].company_name + '">';
             raw_html += '<td>' + (i + 1) + '</td>';
             raw_html += '<td>' + customers_data[i].company_name + '</td>';
-            // raw_html += '<td>' + customers_data[i].partner_code + '</td>';
-            // raw_html += '<td style="text-align:center;" id="customer_edit_form"><i class="fas fa-cog"></i></td>';
             raw_html += '</tr>';
         }
         $('#customer_info_table tbody').append(raw_html);
@@ -801,7 +581,6 @@ function customerInfo(user_id = null) {
 }
 
 function requestUrl(api_url, body_data = null) {
-    // body_data sample { user_id: user_id }
     var fval = fetch(api_url, {
         method: 'POST',
         body: JSON.stringify(body_data),
@@ -810,14 +589,7 @@ function requestUrl(api_url, body_data = null) {
         },
     })
     return fval;
-    // console.log(reqest_ulr);
 }
-
-// axios.post(get_service_data_url, body_data).then(({ data }) => {
-
-// }).catch(()=>{
-//     alert("接続用API設定を確認してください");
-// });
 
 function historyCreate(history_data) {
     var history_create_url = properties.get('history_create_url');
@@ -832,7 +604,6 @@ function historyCreate(history_data) {
 
 function history() {
     var user_id = $('#user_id').val();
-    // console.log(user_id)
     var body_data = {
         user_id: user_id
     }
@@ -840,55 +611,38 @@ function history() {
     axios.post(history_url, body_data).then(({
         data
     }) => {
-        // console.log(data)
         var histories = data.histories;
         var history_html = '';
         history_html += '<table class="table table-bordered" id="history_table">';
         history_html += '<thead>';
-        // history_html = '<tr>';
         history_html += '<th>No</th>';
         history_html += '<th>取引先名</th>';
         history_html += '<th>サービス名</th>'; //Service Name
-        // history_html += '<th>実行履歴</th>'; //Executed
         history_html += '<th>実行種別</th>'; //Execute type
         history_html += '<th>ステータス</th>';
         history_html += '<th>日時</th>';
-        // history_html = '</tr>';
         history_html += '</thead>';
         history_html += '<tbody>';
         var i = 1;
         histories.forEach(history => {
-            // console.log(history);
             history_html += '<tr>';
             history_html += '<td>' + i + '</td>';
             history_html += '<td>' + history.company_name + '</td>';
             history_html += '<td>' + history.service_name + '</td>';
-            // history_html += '<td>' + history.execute_name + '</td>';
             history_html += '<td>' + history.execute_type + '</td>';
             history_html += '<td class="history_message" hist_message="' + history.message + '" style="text-align:center; font-size:30px;">' + (history.status == "Success" ? '<i class="fa fa-check-circle" aria-hidden="true"></i>' : '<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>') + '</td>';
-            // history_html += '<td>' + formatDate(new Date(history.updated_at)) + '</td>';
             history_html += '<td>' + history.updated_at + '</td>';
             history_html += '</tr>';
             i++;
         });
         history_html += '</tbody>';
         history_html += '</table>';
-        // history_data_table.row.add(history_html).draw();;
-        // $('#history_table tbody').html(history_html);
-        // history_data_table.rows.add(history_html).draw();
-        // console.log(history_html);
         $('#history_table_div').html(history_html);
         $('#history_table').DataTable({
             "language": {
                 "url": "./js/DataTableJapaneseLanguage.json"
             }
         });
-        setTimeout(function() {
-            areRefresh();
-            // $('#area_refresh').click();
-            // $('#first_tab').click();
-            // console.log("Clicked");
-        }, 1000);
     }).catch(() => {
         alert("接続用API設定を確認してください");
     });
@@ -916,27 +670,20 @@ function length_fill(data_string) {
     return str;
 }
 
-function areRefresh() {
+function areRefresh(rownum = 0) {
     $("#tabs2").tabs({
         active: 0
     });
-    $('.cust_info_row .bg-secondary').removeClass("bg-secondary text-white");
-    // $('.cust_info_row').removeClass("bg-secondary text-white");
-
-    var cmn_connect_id = $("#customer_info_table>tbody>tr:first").attr('cmn_connect_id');
-    var adm_user_id = $("#customer_info_table>tbody>tr:first").attr('adm_user_id');
-    var company_name = $("#customer_info_table>tbody>tr:first").attr('company-name');
-    var partner_code = $("#customer_info_table>tbody>tr:first").attr('partner-code');
+    $('.cust_info_row').removeClass("bg-secondary text-white");
+    var cmn_connect_id = $("#customer_info_table>tbody>tr:eq(" + rownum + ")").attr('cmn_connect_id');
+    var adm_user_id = $("#customer_info_table>tbody>tr:eq(" + rownum + ")").attr('adm_user_id');
+    var company_name = $("#customer_info_table>tbody>tr:eq(" + rownum + ")").attr('company-name');
+    var partner_code = $("#customer_info_table>tbody>tr:eq(" + rownum + ")").attr('partner-code');
     $('#company_name_view').html(company_name);
     $('#partner_code_view').html(partner_code);
     $('#cmn_connect_id_for_schedule').val(cmn_connect_id);
     alertMessageClassRemove('', '', 'alert-danger');
-    // $('#rpa_schedule_message').html('');
-    // console.log(customer_id)
-    // $('.cust_info_row').attr('cmn_connect_id', cmn_connect_id).addClass('bg-secondary text-white');
-    $('.cust_info_row:eq(0)').addClass('bg-secondary text-white');
-    // $('#' + cmn_connect_id).addClass('bg-secondary text-white');
-    // console.log(adm_user_id)
+    $('.cust_info_row:eq(' + rownum + ')').addClass('bg-secondary text-white');
     serviceNameShow({
         cmn_connect_id: cmn_connect_id,
         adm_user_id: adm_user_id
@@ -949,30 +696,23 @@ function serviceNameShow(get_service_parameters) {
     serviceData.then(({
         data
     }) => {
-        // console.log(data)
         var service_data = data.all_service_data;
         var raw_html = '';
-        // var service_html = '';
         if (service_data.length) {
-            // var raw_html = '';
             for (let i = 0; i < service_data.length; i++) {
-                // const element = array[i];
                 raw_html += '<tr class="service_info_row" remove_val="0" service-id="' + service_data[i].lv3_service_id + '" service-name="' + service_data[i].service_name + '">';
                 raw_html += '<td>' + (i + 1) + '</td>';
                 raw_html += '<td id="service_edit_form">' + service_data[i].service_name + '</td>';
                 raw_html += '<td style="text-align:center;" id="service_execution"><i class="far fa-play-circle" style="font-size:30px;"></i></td>';
                 raw_html += '<td style="text-align:center;" id="service_configureation"><i class="fas fa-cog" style="font-size:30px;"></i></td>';
                 raw_html += '</tr>';
-                // service_html += '<option value="' + service_data[i].lv3_service_id + '">' + service_data[i].service_name + '</option>';
 
             }
         } else {
             raw_html = '<tr remove_val="1"><td colspan="4">No data found</td></tr>';
-            // raw_html = 'No data found';
         }
 
         $('#service_info_table tbody').html(raw_html);
-        // $('#next_service').html(service_html);
         if (service_data.length) {
             rpa_schedule_show(service_data[0].lv3_service_id);
         }

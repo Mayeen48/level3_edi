@@ -2,21 +2,21 @@
 user_name=super_admin@jacos.co.jp
 #user_name=user@jacos.co.jp
 password=Qe75ymSr
-login_url=https://jcs.dev.jacos.jp/api/get_user_login
-history_url=https://jcs.dev.jacos.jp/api/history_url
-get_customer_url=https://jcs.dev.jacos.jp/api/get_customer
-show_service_url=https://jcs.dev.jacos.jp/api/show_service_url
-add_service_url=https://jcs.dev.jacos.jp/api/add_service
-delete_service_url=https://jcs.dev.jacos.jp/api/delete_service
-get_schedule_data_url=https://jcs.dev.jacos.jp/api/get_schedule_data
-set_schedule_data_url=https://jcs.dev.jacos.jp/api/set_schedule_data
-set_file_path=https://jcs.dev.jacos.jp/api/set_file_path
-set_job_data_url=https://jcs.dev.jacos.jp/api/set_job_data
-lv3_schedule_data_url=https://jcs.dev.jacos.jp/api/lv3_schedule_data
-get_service_data_url=https://jcs.dev.jacos.jp/api/get_service_data
-history_create_url=https://jcs.dev.jacos.jp/api/history_create
+login_url=http://localhost/jcs/api/get_user_login
+history_url=http://localhost/jcs/api/history_url
+get_customer_url=http://localhost/jcs/api/get_customer
+show_service_url=http://localhost/jcs/api/show_service_url
+add_service_url=http://localhost/jcs/api/add_service
+delete_service_url=http://localhost/jcs/api/delete_service
+get_schedule_data_url=http://localhost/jcs/api/get_schedule_data
+set_schedule_data_url=http://localhost/jcs/api/set_schedule_data
+set_file_path=http://localhost/jcs/api/set_file_path
+set_job_data_url=http://localhost/jcs/api/set_job_data
+lv3_schedule_data_url=http://localhost/jcs/api/lv3_schedule_data
+get_service_data_url=http://localhost/jcs/api/get_service_data
+history_create_url=http://localhost/jcs/api/history_create
 #scenario API
-job_scenario_api=https://jcs.dev.jacos.jp/api/job_scenario
+job_scenario_api=http://localhost/jcs/api/job_scenario
 #Time must be in seconds
 #Default trigger_execution_time=60 sec
 trigger_execution_time=60

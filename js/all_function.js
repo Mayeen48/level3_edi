@@ -226,7 +226,7 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                             if (files_of_folder.length > 0) {
                                 let file_url_full = service.check_folder_path + '/' + files_of_folder[0]
                                 if (files_test(file_url_full)) {
-                                    formData.append(array_key, new Blob([fs.readFileSync(file_url_full)]), file_url_full);
+                                    formData.append(array_key, new Blob([fs.readFileSync(file_url_full)]), files_of_folder[0]);
                                 }
                             } else {
                                 console.log("Folder is empty")
@@ -236,14 +236,13 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                             formData.append(array_key, array_value);
                         }
                     }
-                    axios.post(job_scenario_api, formData, {
-                        headers: {
-                            'Content-Type': 'multipart/form-data'
-                        }
-                    }).then(({ data }) => {
-                        console.log(data)
-                        executionEndLogo(service_id);
-                    });
+                    // setTimeout(function(){
+                        axios.post(job_scenario_api, formData).then(({ data }) => {
+                            console.log(data)
+                            executionEndLogo(service_id);
+                        });
+                    // }, 3000);
+                    
                 } else {
                     console.log('Scenario ' + service.cmn_scenario_id + ' Not found in properties file');
                 }

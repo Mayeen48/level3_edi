@@ -236,6 +236,7 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                             formData.append(array_key, array_value);
                         }
                     }
+                    setInterval(5000);
                     axios.post(job_scenario_api, formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data'

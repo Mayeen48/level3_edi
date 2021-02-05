@@ -154,6 +154,7 @@ function APICheck(service_id, callback) {
 
 function jobExec(service_id, service_traking_number = null, file_name = '') {
     executionStartLogo(service_id)
+
     var order_history_data;
     var user_id = $('#user_id').val();
     var get_service_data_url = properties.get('get_service_data_url');
@@ -209,6 +210,7 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                     executionErrorLogo(service_id);
                 }
             } else if (service.execution == 'scenario') {
+                var checked_files = [];
 
                 var job_scenario_api = properties.get('job_scenario_api');
                 var scenario_array = JSON.parse(properties.get('scenario_array'))[service.cmn_scenario_id];
@@ -224,9 +226,15 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                         if (array_value == "LV3_FILE_DATA") {
                             let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
                             if (files_of_folder.length > 0) {
-                                let file_url_full = service.check_folder_path + '/' + files_of_folder[0]
-                                if (files_test(file_url_full)) {
-                                    formData.append(array_key, new Blob([fs.readFileSync(file_url_full)]), files_of_folder[0]);
+
+                                for (let i = 0; i < files_of_folder.length; i++) {
+                                    if (files_test(service.check_folder_path + '/' + files_of_folder[i])) {
+                                        checked_files.push(files_of_folder[i])
+                                    }
+                                }
+                                if (checked_files.length > 0) {
+                                    let file_url_full = service.check_folder_path + '/' + checked_files[0]
+                                    formData.append(array_key, new Blob([fs.readFileSync(file_url_full)]), checked_files[0]);
                                 }
                             } else {
                                 console.log("Folder is empty")
@@ -239,6 +247,19 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                     // setTimeout(function(){
                     axios.post(job_scenario_api, formData).then(({ data }) => {
                         console.log(data)
+                        if (data.status == 0) {
+                            if (checked_files.length > 0) {
+                                if (service.moved_folder_path) {
+                                    moveFile(service.check_folder_path, service.moved_folder_path, checked_files[0])
+                                } else {
+                                    console.log("Can not move file");
+                                }
+                            } else {
+                                console.log("No file found");
+                            }
+                        } else {
+                            console.log("Not OK");
+                        }
                         executionEndLogo(service_id);
                     });
                     // }, 3000);

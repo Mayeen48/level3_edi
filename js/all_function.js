@@ -90,10 +90,23 @@ function folderCheck(service_id, callback) {
         data
     }) => {
         var service = data.service;
+        // console.log(service)
         if (!jQuery.isEmptyObject(service)) {
+            let checked_files = [];
             if (service.path_execution_flag) {
-                let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
-                if (files_of_folder.length > 0) {
+                try {
+                    let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
+                    for (let i = 0; i < files_of_folder.length; i++) {
+                        if (files_test(service.check_folder_path + '/' + files_of_folder[i])) {
+                            checked_files.push(files_of_folder[i])
+                        }
+                    }
+                } catch (error) {
+                    console.log("Folder is empty");
+                    // executionErrorLogo(4)
+                }
+                // console.log(checked_files)
+                if (checked_files.length > 0) {
                     if (service.job_execution_flag) {
                         callback(1);
                     } else {
@@ -127,12 +140,12 @@ function APICheck(service_id, callback) {
         data
     }) => {
         var service = data.service;
+        // console.log(service);
         if (service.api_url) {
             axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
                 var files_array = data.files_array;
                 if (data.status_code == 200) {
                     var job_execute_flg = true;
-
                     if (files_array.length == 0) {
                         callback(job_execute_flg, element)
                     }
@@ -142,6 +155,8 @@ function APICheck(service_id, callback) {
                             callback(job_execute_flg, element)
                         })
                     });
+                } else {
+                    console.log("API has no file")
                 }
             }).catch(() => {
                 alert('May be API is problem');
@@ -154,7 +169,7 @@ function APICheck(service_id, callback) {
 
 function jobExec(service_id, service_traking_number = null, file_name = '') {
     executionStartLogo(service_id)
-
+        // console.log('My' + file_name);
     var order_history_data;
     var user_id = $('#user_id').val();
     var get_service_data_url = properties.get('get_service_data_url');
@@ -174,6 +189,8 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                     var batch_file_path = (service.batch_file_path).replace('LV3_FILE_PATH', file_path)
                     const myShellScript = exec(batch_file_path);
                     myShellScript.stdout.on('data', (data) => {
+                        console.log(data);
+                        // console.log("Job executed");
                         // do whatever you want here with data
                         order_history_data = {
                             process_type: service_traking_number == null ? 'Auto' : 'Manual',
@@ -210,6 +227,7 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                     executionErrorLogo(service_id);
                 }
             } else if (service.execution == 'scenario') {
+                // console.log("HI");
                 var checked_files = [];
 
                 var job_scenario_api = properties.get('job_scenario_api');
@@ -224,20 +242,21 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                         const array_key = Object.keys(scenario_array)[i];
                         const array_value = Object.values(scenario_array)[i];
                         if (array_value == "LV3_FILE_DATA") {
-                            let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
-                            if (files_of_folder.length > 0) {
-
+                            try {
+                                let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
                                 for (let i = 0; i < files_of_folder.length; i++) {
                                     if (files_test(service.check_folder_path + '/' + files_of_folder[i])) {
                                         checked_files.push(files_of_folder[i])
                                     }
                                 }
-                                if (checked_files.length > 0) {
-                                    let file_url_full = service.check_folder_path + '/' + checked_files[0]
-                                    formData.append(array_key, new Blob([fs.readFileSync(file_url_full)]), checked_files[0]);
-                                }
-                            } else {
-                                console.log("Folder is empty")
+                            } catch (error) {
+                                console.log("Folder is empty");
+                                // executionErrorLogo(4)
+                            }
+                            // console.log(checked_files)
+                            if (checked_files.length > 0) {
+                                let file_url_full = service.check_folder_path + '/' + checked_files[0]
+                                formData.append(array_key, new Blob([fs.readFileSync(file_url_full)]), checked_files[0]);
                             }
 
                         } else {
@@ -246,13 +265,32 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
                     }
                     // setTimeout(function(){
                     axios.post(job_scenario_api, formData).then(({ data }) => {
-                        console.log(data)
+                        // console.log(data)
                         if (data.status == 0) {
                             if (checked_files.length > 0) {
                                 if (service.moved_folder_path) {
+
                                     moveFile(service.check_folder_path, service.moved_folder_path, checked_files[0])
+                                    order_history_data = {
+                                        process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                                        user_id: user_id,
+                                        service_id: (service.lv3_service_id),
+                                        status: 'Success',
+                                        execute_name: 'Shipment',
+                                        history_message: "File Moved"
+                                    }
+                                    historyCreate(order_history_data);
                                 } else {
                                     console.log("Can not move file");
+                                    order_history_data = {
+                                        process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                                        user_id: user_id,
+                                        service_id: (service.lv3_service_id),
+                                        status: 'Failed',
+                                        execute_name: 'Shipment',
+                                        history_message: "File saved but not moved"
+                                    }
+                                    historyCreate(order_history_data);
                                 }
                             } else {
                                 console.log("No file found");
@@ -512,8 +550,8 @@ function moveFile(file_source_oath, file_move_path, moved_file_name) {
     var new_file_name = fileNameChange(moved_file_name);
     var f = path.basename(file_source_oath + "/" + new_file_name);
     var dest = path.resolve(file_move_path + "/", f);
-    console.log(f);
-    console.log(dest);
+    // console.log(f);
+    // console.log(dest);
     fs.rename(file_source_oath + "/" + moved_file_name, dest, (err) => {
         if (err) throw err;
         else console.log('ファイル移動が完了しました。');

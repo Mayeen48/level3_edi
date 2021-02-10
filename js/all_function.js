@@ -25,12 +25,12 @@ function trigger(service_id = null, service_traking_number = 0) {
                     if (date_data == 0) {
                         folderCheck(service_id, function(folder_data) {
                             if (folder_data == 0) {
-                                APICheck(service_id, function(job_execute_flg, file_data) {
+                                APICheck(service_id, function(job_execute_flg, data) {
                                     if (job_execute_flg == 0) {
                                         console.log('File Not Downloaded from trigger')
                                     } else {
                                         console.log('File Downloaded from trigger')
-                                        jobExec(service_id, service_traking_number, file_data.file_name)
+                                        jobExec(service_id, service_traking_number, data)
                                     }
                                 })
                             } else {
@@ -143,18 +143,24 @@ function APICheck(service_id, callback) {
         // console.log(service);
         if (service.api_url) {
             axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
-                var files_array = data.files_array;
+                var file_name = data.file_name
+                var file_path = data.file_path
                 if (data.status_code == 200) {
                     var job_execute_flg = true;
-                    if (files_array.length == 0) {
-                        callback(job_execute_flg, element)
-                    }
-                    files_array.forEach(element => {
-                        file_save_from_url(element.file_name, element.file_path, service.api_folder_path, function(download_status) {
+                    if (file_name || file_path) {
+                        file_save_from_url(file_name, file_path, service.api_folder_path, function(download_status) {
                             job_execute_flg = download_status;
-                            callback(job_execute_flg, element)
+                            callback(job_execute_flg, data)
                         })
-                    });
+                    } else {
+                        callback(job_execute_flg, data)
+                    }
+                    // files_array.forEach(element => {
+                    //     file_save_from_url(element.file_name, element.file_path, service.api_folder_path, function(download_status) {
+                    //         job_execute_flg = download_status;
+                    //         callback(job_execute_flg, element, data)
+                    //     })
+                    // });
                 } else {
                     console.log("API has no file")
                 }
@@ -167,7 +173,7 @@ function APICheck(service_id, callback) {
     })
 }
 
-function jobExec(service_id, service_traking_number = null, file_name = '') {
+function jobExec(service_id, service_traking_number = null, response_data = []) {
     executionStartLogo(service_id)
         // console.log('My' + file_name);
     var order_history_data;
@@ -184,10 +190,24 @@ function jobExec(service_id, service_traking_number = null, file_name = '') {
             if (service.execution == 'batch') {
                 if (service.batch_file_path != null) {
                     // =====my new code =====
-                    let file_path = service.api_folder_path + '/' + file_name
                     const exec = require('child_process').exec;
-                    var batch_file_path = (service.batch_file_path).replace('LV3_FILE_PATH', file_path)
-                    const myShellScript = exec(batch_file_path);
+                    var batch_file_path_with_arg = '';
+                    if (response_data.hasOwnProperty("file_name")) {
+                        let file_path = service.api_folder_path + '/' + response_data.file_name
+                        batch_file_path_with_arg = (service.batch_file_path).replace('LV3_FILE_PATH', file_path)
+                    }
+                    if (response_data.hasOwnProperty("super_code")) {
+                        batch_file_path_with_arg.replace('DATA-super_code', response_data.super_code)
+                    }
+                    if (response_data.hasOwnProperty("partner_code")) {
+                        batch_file_path_with_arg.replace('DATA-partner_code', response_data.partner_code)
+                    }
+                    if (response_data.hasOwnProperty("work")) {
+                        batch_file_path_with_arg.replace('DATA-work', response_data.work)
+                    }
+                    console.log(batch_file_path_with_arg)
+                        // return 0;
+                    const myShellScript = exec(batch_file_path_with_arg);
                     myShellScript.stdout.on('data', (data) => {
                         console.log(data);
                         // console.log("Job executed");

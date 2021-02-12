@@ -1,4 +1,4 @@
-function trigger(service_id = null, service_traking_number = 0) {
+async function trigger(service_id = null, service_traking_number = 0) {
     var service_id_array = [];
     var traking_number_array = [];
     if (service_id == null || service_id == 0) {
@@ -15,40 +15,43 @@ function trigger(service_id = null, service_traking_number = 0) {
         console.log("No service ID found");
         return 0;
     }
-    for (let i = 0; i < service_id_array.length; i++) {
+    let i = 0;
+    while (i < service_id_array.length) {
         service_id = service_id_array[i];
         service_traking_number = traking_number_array[i];
-
-        time_date_match(service_id, 1, function(time_data) {
-            if (time_data == 0) {
-                time_date_match(service_id, 2, function(date_data) {
-                    if (date_data == 0) {
-                        folderCheck(service_id, function(folder_data) {
-                            if (folder_data == 0) {
-                                APICheck(service_id, function(job_execute_flg, data) {
-                                    if (job_execute_flg == 0) {
-                                        console.log('File Not Downloaded from trigger')
-                                    } else {
-                                        console.log('File Downloaded from trigger')
-                                        jobExec(service_id, service_traking_number, data)
-                                    }
-                                })
-                            } else {
-                                jobExec(service_id, service_traking_number)
-                            }
-                        })
-                    } else {
-                        jobExec(service_id, service_traking_number)
-                    }
-                })
-            } else {
-                jobExec(service_id, service_traking_number)
-            }
-        });
-
+        await single_service_exec(service_id, service_traking_number)
+        i++;
     }
 }
 
+function single_service_exec(service_id, service_traking_number) {
+    time_date_match(service_id, 1, function(time_data) {
+        if (time_data == 0) {
+            time_date_match(service_id, 2, function(date_data) {
+                if (date_data == 0) {
+                    folderCheck(service_id, function(folder_data) {
+                        if (folder_data == 0) {
+                            APICheck(service_id, function(job_execute_flg, data) {
+                                if (job_execute_flg == 0) {
+                                    console.log('File Not Downloaded from trigger')
+                                } else {
+                                    console.log('File Downloaded from trigger')
+                                    jobExec(service_id, service_traking_number, data)
+                                }
+                            })
+                        } else {
+                            jobExec(service_id, service_traking_number)
+                        }
+                    })
+                } else {
+                    jobExec(service_id, service_traking_number)
+                }
+            })
+        } else {
+            jobExec(service_id, service_traking_number)
+        }
+    });
+}
 
 function time_date_match(service_id, type = 1, callback) {
     if (service_id) {
@@ -69,7 +72,7 @@ function time_date_match(service_id, type = 1, callback) {
                     callback(0);
                 }
             } else {
-                console.log("Please add schedule");
+                // console.log("Please add schedule");
                 callback(0);
             }
         }).catch((e) => {
@@ -81,6 +84,7 @@ function time_date_match(service_id, type = 1, callback) {
 }
 
 function folderCheck(service_id, callback) {
+    // console.log("In check Folder " + service_id);
     var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = {
@@ -118,7 +122,7 @@ function folderCheck(service_id, callback) {
                     console.log("Checked folder is empty");
                 }
             } else {
-                console.log("Path execution off");
+                // console.log("Path execution off");
                 callback(0);
             }
 

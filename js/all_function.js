@@ -147,6 +147,7 @@ function APICheck(service_id, callback) {
         // console.log(service);
         if (service.api_url) {
             axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
+                // console.log(data);
                 var file_name = data.file_name
                 var file_path = data.file_path
                 if (data.status_code == 200) {
@@ -166,7 +167,7 @@ function APICheck(service_id, callback) {
                     //     })
                     // });
                 } else {
-                    console.log("API has no file")
+                    // console.log("API has no file")
                 }
             }).catch(() => {
                 alert('May be API is problem');

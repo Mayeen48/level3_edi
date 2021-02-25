@@ -1,4 +1,5 @@
 async function trigger(service_id = null, service_traking_number = 0) {
+    var setting_modul_check = $('#schedule_modal').is(':visible');
     var service_id_array = [];
     var traking_number_array = [];
     if (service_id == null || service_id == 0) {
@@ -14,6 +15,10 @@ async function trigger(service_id = null, service_traking_number = 0) {
     if (service_id_array.length == 0) {
         console.log("No service ID found");
         return 0;
+    }
+    if (setting_modul_check) {
+        var service_id_for_job_exec_trigger = $('#service_id_for_job_exec_trigger').val();
+        service_id_array = $(service_id_array).not([service_id_for_job_exec_trigger]).get();
     }
     let i = 0;
     while (i < service_id_array.length) {
@@ -144,37 +149,34 @@ function APICheck(service_id, callback) {
         data
     }) => {
         var service = data.service;
-        // console.log(service);
-        if (service.api_url) {
-            axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
-                // console.log(data);
-                var file_name = data.file_name
-                var file_path = data.file_path
-                if (data.status_code == 200) {
-                    var job_execute_flg = true;
-                    if (file_name || file_path) {
-                        file_save_from_url(file_name, file_path, service.api_folder_path, function(download_status) {
-                            job_execute_flg = download_status;
+        if (fs.existsSync(service.api_folder_path)) {
+            if (service.api_url) {
+                axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
+                    var file_name = data.file_name
+                    var file_path = data.file_path
+                    if (data.status_code == 200) {
+                        var job_execute_flg = true;
+                        if (file_name || file_path) {
+                            file_save_from_url(file_name, file_path, service.api_folder_path, function(download_status) {
+                                job_execute_flg = download_status;
+                                callback(job_execute_flg, data)
+                            })
+                        } else {
                             callback(job_execute_flg, data)
-                        })
+                        }
                     } else {
-                        callback(job_execute_flg, data)
+                        // console.log("API has no file")
                     }
-                    // files_array.forEach(element => {
-                    //     file_save_from_url(element.file_name, element.file_path, service.api_folder_path, function(download_status) {
-                    //         job_execute_flg = download_status;
-                    //         callback(job_execute_flg, element, data)
-                    //     })
-                    // });
-                } else {
-                    // console.log("API has no file")
-                }
-            }).catch(() => {
-                alert('May be API is problem');
-            });
+                }).catch(() => {
+                    alert('May be API is problem');
+                });
+            } else {
+                console.log('API Trigger not set')
+            }
         } else {
-            console.log('API Trigger not set')
+            console.log('API Folder Path Directory not found.');
         }
+
     })
 }
 

@@ -562,6 +562,7 @@ $(document).ready(function() {
 
     $(document).on('click', '#service_configureation', function() {
         var service_id = $(this).closest('tr').attr('service-id');
+        $('#service_id_for_job_exec_trigger').val(service_id);
         $('#service_id_popup').val(service_id);
         rpa_schedule_show(service_id);
         $("#schedule_modal").modal("show");

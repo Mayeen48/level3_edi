@@ -5,7 +5,6 @@ password=Qe75ymSr
 login_url=https://jcs.dev.jacos.jp/api/get_user_login
 history_url=https://jcs.dev.jacos.jp/api/history_url
 get_customer_url=https://jcs.dev.jacos.jp/api/get_customer
-show_service_url=https://jcs.dev.jacos.jp/api/show_service_url
 add_service_url=https://jcs.dev.jacos.jp/api/add_service
 delete_service_url=https://jcs.dev.jacos.jp/api/delete_service
 get_schedule_data_url=https://jcs.dev.jacos.jp/api/get_schedule_data

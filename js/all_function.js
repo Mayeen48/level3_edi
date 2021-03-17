@@ -1,17 +1,34 @@
+global_customers = [];
 async function trigger(service_id = null, service_traking_number = 0) {
     var setting_modul_check = $('#schedule_modal').is(':visible');
     var service_id_array = [];
     var traking_number_array = [];
+
     if (service_id == null || service_id == 0) {
-        $("#service_info_table > tbody > tr").each(function() {
-            var service_id_in_row = $(this).attr('service-id');
-            service_id_array.push(service_id_in_row)
-            traking_number_array.push($(this).index())
+        global_customers.forEach(customer_element => {
+            service_array = customer_element.service_info;
+            service_array.forEach(element => {
+                service_id_array.push(element.lv3_service_id)
+            });
         });
+        // traking_number_array.push($(this).index())
     } else {
+        console.log('Manual')
         service_id_array.push(service_id)
         traking_number_array.push(service_traking_number)
     }
+    service_id_array.sort();
+    // if (service_id == null || service_id == 0) {
+    //     $("#service_info_table > tbody > tr").each(function() {
+    //         var service_id_in_row = $(this).attr('service-id');
+    //         service_id_array.push(service_id_in_row)
+    //         traking_number_array.push($(this).index())
+    //     });
+    // } else {
+    //     service_id_array.push(service_id)
+    //     traking_number_array.push(service_traking_number)
+    // }
+
     if (service_id_array.length == 0) {
         console.log("No service ID found");
         return 0;
@@ -392,6 +409,20 @@ function time_process(time) {
 // API Data 
 function rpa_schedule_show(service_id) {
     var user_id = $('#user_id').val();
+    // var data = '';
+    // global_customers.forEach(cust_element => {
+    //     var service_info = cust_element.service_info;
+    //     service_info.forEach(service_element => {
+    //         // console.log(service_element);
+    //         if (service_id == service_element.lv3_service_id) {
+    //             data = service_element.schedule_data
+    //                 // break;
+    //         }
+    //     });
+
+    // });
+    // console.log(data)
+    // return 0;
     var user_data = {
         user_id: user_id,
         service_id: service_id
@@ -652,6 +683,8 @@ function customerInfo(user_id = null) {
         data
     }) => {
         var customers_data = data.customers_data;
+        global_customers = customers_data;
+        // console.log(global_customers)
         var raw_html = '';
         for (let i = 0; i < customers_data.length; i++) {
             raw_html += '<tr class="cust_info_row" cmn_connect_id="' + customers_data[i].cmn_connect_id + '" adm_user_id="' + user_id + '" partner-code="' + customers_data[i].partner_code + '" company-name="' + customers_data[i].company_name + '">';
@@ -659,7 +692,7 @@ function customerInfo(user_id = null) {
             raw_html += '<td>' + customers_data[i].company_name + '</td>';
             raw_html += '</tr>';
         }
-        $('#customer_info_table tbody').append(raw_html);
+        $('#customer_info_table tbody').html(raw_html);
     }).catch(() => {
         alert("接続用API設定を確認してください");
     })
@@ -769,41 +802,34 @@ function areRefresh(rownum = 0) {
     $('#cmn_connect_id_for_schedule').val(cmn_connect_id);
     alertMessageClassRemove('', '', 'alert-danger');
     $('.cust_info_row:eq(' + rownum + ')').addClass('bg-secondary text-white');
-    serviceNameShow({
-        cmn_connect_id: cmn_connect_id,
-        adm_user_id: adm_user_id
-    })
+    serviceNameShow(cmn_connect_id)
 }
 
-function serviceNameShow(get_service_parameters) {
-    var show_service_url = properties.get('show_service_url');
-    var serviceData = axios.post(show_service_url, get_service_parameters);
-    serviceData.then(({
-        data
-    }) => {
-        var service_data = data.all_service_data;
-        var raw_html = '';
-        if (service_data.length) {
-            for (let i = 0; i < service_data.length; i++) {
-                raw_html += '<tr class="service_info_row" remove_val="0" service-id="' + service_data[i].lv3_service_id + '" service-name="' + service_data[i].service_name + '">';
-                raw_html += '<td>' + (i + 1) + '</td>';
-                raw_html += '<td id="service_edit_form">' + service_data[i].service_name + '</td>';
-                raw_html += '<td style="text-align:center;" id="service_execution"><i class="far fa-play-circle" style="font-size:30px;"></i></td>';
-                raw_html += '<td style="text-align:center;" id="service_configureation"><i class="fas fa-cog" style="font-size:30px;"></i></td>';
-                raw_html += '</tr>';
-
-            }
-        } else {
-            raw_html = '<tr remove_val="1"><td colspan="4">No data found</td></tr>';
+function serviceNameShow(cmn_connect_id) {
+    var service_data = '';
+    global_customers.forEach(cust_element => {
+        if (cmn_connect_id == cust_element.cmn_connect_id) {
+            service_data = cust_element.service_info
         }
-
-        $('#service_info_table tbody').html(raw_html);
-        if (service_data.length) {
-            rpa_schedule_show(service_data[0].lv3_service_id);
-        }
-    }).catch(() => {
-        alert("接続用API設定を確認してください");
     });
+    var raw_html = '';
+    if (service_data.length) {
+        for (let i = 0; i < service_data.length; i++) {
+            raw_html += '<tr class="service_info_row" remove_val="0" service-id="' + service_data[i].lv3_service_id + '" service-name="' + service_data[i].service_name + '">';
+            raw_html += '<td>' + (i + 1) + '</td>';
+            raw_html += '<td id="service_edit_form">' + service_data[i].service_name + '</td>';
+            raw_html += '<td style="text-align:center;" id="service_execution"><i class="far fa-play-circle" style="font-size:30px;"></i></td>';
+            raw_html += '<td style="text-align:center;" id="service_configureation"><i class="fas fa-cog" style="font-size:30px;"></i></td>';
+            raw_html += '</tr>';
+
+        }
+    } else {
+        raw_html = '<tr remove_val="1"><td colspan="4">No data found</td></tr>';
+    }
+    $('#service_info_table tbody').html(raw_html);
+    if (service_data.length) {
+        rpa_schedule_show(service_data[0].lv3_service_id);
+    }
 }
 
 function scheduleMessageClassRemove(addClass, message, removeClass) {

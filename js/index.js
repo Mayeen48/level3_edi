@@ -432,7 +432,7 @@ $(document).ready(function() {
         $('.cust_info_row.bg-secondary').removeClass("bg-secondary text-white");
         $(this).addClass('bg-secondary text-white');
         $('#alert_message').html('');
-        serviceNameShow({ cmn_connect_id: cmn_connect_id, adm_user_id: adm_user_id })
+        serviceNameShow(cmn_connect_id)
     });
     $("#area_refresh,#sub_area_refresh,#first_tab").on('click', function() {
         areRefresh();
@@ -492,6 +492,7 @@ $(document).ready(function() {
                     raw_html += '</tr>';
                     $('#service_info_table tbody').append(raw_html);
                     alertMessageClassRemove(data.class_name, data.message, 'alert-danger');
+                    customerInfo(user_id)
                     $("#add_service_modal").modal("hide");
                 }
 

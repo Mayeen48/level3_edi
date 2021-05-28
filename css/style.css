@@ -38,6 +38,7 @@
 }
 
 .file_path_level {
+    padding-right: 10px;
     /* height: 30px; */
     height: 37px;
     line-height: 40px;
@@ -56,4 +57,13 @@
 
 .path_level {
     padding-left: 0px !important;
+}
+
+input[type="checkbox"]{
+    transform: scale(2);
+}
+
+.ui-tabs .ui-tabs-nav{
+    align-items: flex-end !important;
+    display: flex !important;
 }

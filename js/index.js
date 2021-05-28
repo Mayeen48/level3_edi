@@ -24,20 +24,22 @@ if ($.isNumeric(trigger_execution_time_var)) {
     var trigger_execution_time = 60 * 1000;
 }
 
-$(document).ready(function() {
-    user_login();
-    setInterval(trigger, trigger_execution_time);
+var interval_trigger;
 
-    $(function() {
+$(document).ready(function () {
+    user_login();
+    interval_trigger = setInterval(trigger, trigger_execution_time);
+
+    $(function () {
         $("#tabs").tabs({ active: 0 });
     });
-    $(function() {
+    $(function () {
         $("#tabs2").tabs({ active: 0 });
     });
-    $(function() {
+    $(function () {
         $("#tabs-popup").tabs({ active: 0 });
     });
-    $(function() {
+    $(function () {
         $("#tabs-popup-cover").tabs({ active: 0 });
     });
 
@@ -52,7 +54,7 @@ $(document).ready(function() {
             center: 'title',
             right: 'month,agendaWeek,agendaDay'
         },
-        dayRender: function(date, cell) {
+        dayRender: function (date, cell) {
             var start = $.fullCalendar.formatDate(date, "Y-MM-DD");
             var date = new Date(start)
             if (date.getDay() == 6 || date.getDay() == 0) {
@@ -61,7 +63,7 @@ $(document).ready(function() {
 
         },
         // events: 'calendarload',
-        eventRender: function(event, element, view) {
+        eventRender: function (event, element, view) {
             // event.start is already a moment.js object
             // we can apply .format()
             var dateString = event.start.format("YYYY-MM-DD");
@@ -70,7 +72,7 @@ $(document).ready(function() {
         selectable: true,
         selectHelper: true,
         // select
-        select: function(start, end, allDay) {
+        select: function (start, end, allDay) {
             var start = $.fullCalendar.formatDate(start, "Y-MM-DD");
             var end = $.fullCalendar.formatDate(end, "Y-MM-DD");
             var enddt = new Date(end);
@@ -93,9 +95,23 @@ $(document).ready(function() {
         },
     });
 
+    // 自動実行
+    $('#interval_flag').on('click', function () {
+        $('#interval_flag:checked').each(function () {
+            console.log('schedule start');
+            interval_trigger = setInterval(trigger, trigger_execution_time);
+            $('#interval_status').text('動作中').removeClass('bg-danger').addClass('bg-info');
+        })
+        $('#interval_flag:not(:checked)').each(function () {
+            console.log('schedule end');
+            clearInterval(interval_trigger);
+            $('#interval_status').text('停止中').removeClass('bg-info').addClass('bg-danger');
+        })
+    });
+
 
     // Row add in schedule 
-    $(document).on('click', '#add_new_row', function() {
+    $(document).on('click', '#add_new_row', function () {
         var no_data_rows_numbers = $("#week_data tbody").find('input[id="no_data"]').length;
         if (no_data_rows_numbers == 1) {
             $("#week_data tbody").find('input[id="no_data"]').parents("tr").hide();
@@ -104,22 +120,22 @@ $(document).ready(function() {
         var rows_number = $("#week_data tbody").find('input[name="record"]').length;
         var row = '';
         row += '<tr>';
-        row += '<td><input class="form-control" type="checkbox" name="record"></td>';
+        row += '<td><input class="" type="checkbox" name="record"></td>';
         row += '<td>' + (rows_number + 1) + '</td>';
         row += '<td><input type="time" id="time" value="00:00:00"></td>';
-        row += '<td><input class="form-control" type="checkbox" id="sun"></td>';
-        row += '<td><input class="form-control" type="checkbox" id="mon"></td>';
-        row += '<td><input class="form-control" type="checkbox" id="tue"></td>';
-        row += '<td><input class="form-control" type="checkbox" id="wed"></td>';
-        row += '<td><input class="form-control" type="checkbox" id="thu"></td>';
-        row += '<td><input class="form-control" type="checkbox" id="fri"></td>';
-        row += '<td><input class="form-control" type="checkbox" id="sat"></td>';
+        row += '<td><input class="" type="checkbox" id="sun"></td>';
+        row += '<td><input class="" type="checkbox" id="mon"></td>';
+        row += '<td><input class="" type="checkbox" id="tue"></td>';
+        row += '<td><input class="" type="checkbox" id="wed"></td>';
+        row += '<td><input class="" type="checkbox" id="thu"></td>';
+        row += '<td><input class="" type="checkbox" id="fri"></td>';
+        row += '<td><input class="" type="checkbox" id="sat"></td>';
         row += '<tr>';
         $('#week_data tr:last').after(row);
     });
     // delete row from schedule 
-    $("#delete_row").on('click', function() {
-        $("#week_data tbody").find('input[name="record"]').each(function() {
+    $("#delete_row").on('click', function () {
+        $("#week_data tbody").find('input[name="record"]').each(function () {
             if ($(this).is(":checked")) {
                 $(this).parents("tr").remove();
                 $('#no_data').val(1);
@@ -136,7 +152,7 @@ $(document).ready(function() {
         }
     });
     // Add Customer modal
-    $(document).on('click', '#add_customer', function() {
+    $(document).on('click', '#add_customer', function () {
         $('#add_customer_message').html('');
         $('#new_customer_create').html('保存');
         $('#customer_delete').removeClass('d-block');
@@ -148,7 +164,7 @@ $(document).ready(function() {
     });
 
     // Row add in schedule 
-    $(document).on('click', '#add_new_date_row', function() {
+    $(document).on('click', '#add_new_date_row', function () {
         var no_data_rows_numbers = $("#date_specification_table tbody").find('input[id="no_data_sp"]').length;
         if (no_data_rows_numbers == 1) {
             $("#date_specification_table tbody").find('input[id="no_data_sp"]').parents("tr").hide();
@@ -157,17 +173,17 @@ $(document).ready(function() {
         var rows_number = $("#date_specification_table tbody").find('input[name="rrrr"]').length;
         var row = '';
         row += '<tr>';
-        row += '<td><input class="form-control" type="checkbox" name="rrrr"></td>';
+        row += '<td><input class="" type="checkbox" name="rrrr"></td>';
         row += '<td>' + (rows_number + 1) + '</td>';
         row += '<td><input type="time" id="time_sp" value="12:00:00" required></td>';
-        row += '<td><input class="form-control" type="checkbox" id="last_day"></td>';
+        row += '<td><input class="" type="checkbox" id="last_day"></td>';
         row += '<td><input type="number" id="day" style="width:50px;" value="0" ></td>';
         row += '<tr>';
         $('#date_specification_table tr:last').after(row);
     });
     // delete row from schedule 
-    $("#delete_date_row").on('click', function() {
-        $("#date_specification_table tbody").find('input[name="rrrr"]').each(function() {
+    $("#delete_date_row").on('click', function () {
+        $("#date_specification_table tbody").find('input[name="rrrr"]').each(function () {
             if ($(this).is(":checked")) {
                 $(this).parents("tr").remove();
                 $('#no_data_sp').val(1);
@@ -184,14 +200,14 @@ $(document).ready(function() {
         }
     });
     // Schedule create
-    $(document).on('keypress', '#day', function(e) {
+    $(document).on('keypress', '#day', function (e) {
         var key_val = $(this).val();
         if (key_val.length > 1) {
             e.preventDefault();
         }
     })
 
-    $(document).on('click', '#schedule_create', function() {
+    $(document).on('click', '#schedule_create', function () {
         var time_array = new Array();
         var sun_array = new Array();
         var mon_array = new Array();
@@ -211,56 +227,56 @@ $(document).ready(function() {
             scheduleMessageClassRemove('alert-danger', "取引先を選択してください。", 'alert-success');
             return false;
         }
-        $('input[id="sun"]').each(function() {
+        $('input[id="sun"]').each(function () {
             if ($(this).prop("checked") == true) {
                 sun_array.push(1);
             } else if ($(this).prop("checked") == false) {
                 sun_array.push(0);
             }
         });
-        $('input[id="mon"]').each(function() {
+        $('input[id="mon"]').each(function () {
             if ($(this).prop("checked") == true) {
                 mon_array.push(1);
             } else if ($(this).prop("checked") == false) {
                 mon_array.push(0);
             }
         });
-        $('input[id="tue"]').each(function() {
+        $('input[id="tue"]').each(function () {
             if ($(this).prop("checked") == true) {
                 tue_array.push(1);
             } else if ($(this).prop("checked") == false) {
                 tue_array.push(0);
             }
         });
-        $('input[id="wed"]').each(function() {
+        $('input[id="wed"]').each(function () {
             if ($(this).prop("checked") == true) {
                 wed_array.push(1);
             } else if ($(this).prop("checked") == false) {
                 wed_array.push(0);
             }
         });
-        $('input[id="thu"]').each(function() {
+        $('input[id="thu"]').each(function () {
             if ($(this).prop("checked") == true) {
                 thu_array.push(1);
             } else if ($(this).prop("checked") == false) {
                 thu_array.push(0);
             }
         });
-        $('input[id="fri"]').each(function() {
+        $('input[id="fri"]').each(function () {
             if ($(this).prop("checked") == true) {
                 fri_array.push(1);
             } else if ($(this).prop("checked") == false) {
                 fri_array.push(0);
             }
         });
-        $('input[id="sat"]').each(function() {
+        $('input[id="sat"]').each(function () {
             if ($(this).prop("checked") == true) {
                 sat_array.push(1);
             } else if ($(this).prop("checked") == false) {
                 sat_array.push(0);
             }
         });
-        $('input[id="time"]').each(function() {
+        $('input[id="time"]').each(function () {
             var time = (this.value);
             if (time == '') {
                 time_array.push('00:00:00');
@@ -268,7 +284,7 @@ $(document).ready(function() {
                 time_array.push(time);
             }
         });
-        $('input[id="time_sp"]').each(function() {
+        $('input[id="time_sp"]').each(function () {
             var time_sp = (this.value);
             if (time_sp == '') {
                 time_sp_array.push('00:00:00');
@@ -276,7 +292,7 @@ $(document).ready(function() {
                 time_sp_array.push(time_sp);
             }
         });
-        $('input[id="last_day"]').each(function() {
+        $('input[id="last_day"]').each(function () {
             if ($(this).prop("checked") == true) {
                 last_day_array.push(1);
             } else if ($(this).prop("checked") == false) {
@@ -284,7 +300,7 @@ $(document).ready(function() {
             }
         });
 
-        $('input[id="day"]').each(function() {
+        $('input[id="day"]').each(function () {
             var day = (this.value);
             if (day == '') {
                 day_array.push('0');
@@ -304,7 +320,7 @@ $(document).ready(function() {
         }
         var set_schedule_data_url = properties.get('set_schedule_data_url');
         var url_data = { user_id: user_id, cmn_connect_id: cmn_connect_id, service_id: service_id, data_array: data_array, time_array: time_array, time_sp_array: time_sp_array, last_day_array: last_day_array, day_array: day_array }
-            // Api Data 
+        // Api Data 
         axios.post(set_schedule_data_url, url_data).then(({ data }) => {
             $('#rpa_schedule_message').removeClass('alert-danger');
             $('#rpa_schedule_message').addClass(data.class_name);
@@ -316,7 +332,7 @@ $(document).ready(function() {
 
     });
 
-    $("#check_folder_path").on('change', function() {
+    $("#check_folder_path").on('change', function () {
         try {
             var sourceVal = document.getElementById("check_folder_path").files[0].path;
             $("#check_folder_path_box").val(sourceVal);
@@ -324,7 +340,7 @@ $(document).ready(function() {
             console.log(error)
         }
     });
-    $("#move_folder_path").change(function() {
+    $("#move_folder_path").change(function () {
         try {
             var moveVal = document.getElementById("move_folder_path").files[0].path;
             $("#move_folder_path_box").val(moveVal);
@@ -332,7 +348,7 @@ $(document).ready(function() {
             console.log(error)
         }
     });
-    $("#batch_file_path").change(function() {
+    $("#batch_file_path").change(function () {
         try {
             var batchVal = document.getElementById("batch_file_path").files[0].path;
             $("#batch_file_path_box").val(batchVal);
@@ -340,7 +356,7 @@ $(document).ready(function() {
             console.log(error)
         }
     });
-    $("#api_folder_path").change(function() {
+    $("#api_folder_path").change(function () {
         try {
             var apiPathVal = document.getElementById("api_folder_path").files[0].path;
             $("#api_folder_path_box").val(apiPathVal);
@@ -348,7 +364,7 @@ $(document).ready(function() {
             console.log(error)
         }
     });
-    $('#file_path_save,#api_url_save').on('click', function() {
+    $('#file_path_save,#api_url_save').on('click', function () {
         var path_execution_flag = $("#path_execution_flag").is(':checked');
         var user_id = $('#user_id').val();
         var cmn_connect_id = $('#cmn_connect_id_for_schedule').val();;
@@ -384,7 +400,7 @@ $(document).ready(function() {
         });
     });
 
-    $(document).on('click', '#next_service_save, #job_save', function() {
+    $(document).on('click', '#next_service_save, #job_save', function () {
         var job_execution_flag = $("#job_execution_flag").is(':checked');
         var scenario_execute = $("#scenario_execute").is(':checked');
         var batch_execute = $("#batch_execute").is(':checked');
@@ -421,7 +437,7 @@ $(document).ready(function() {
         });
 
     })
-    $(document).on('click', '.cust_info_row', function() {
+    $(document).on('click', '.cust_info_row', function () {
         var cmn_connect_id = $(this).attr("cmn_connect_id");
         var adm_user_id = $(this).attr("adm_user_id");
         var partner_code = $(this).attr("partner-code");
@@ -434,11 +450,26 @@ $(document).ready(function() {
         $('#alert_message').html('');
         serviceNameShow(cmn_connect_id)
     });
-    $("#area_refresh,#sub_area_refresh,#first_tab").on('click', function() {
+    $("#area_refresh,#sub_area_refresh,#first_tab").on('click', function () {
         areRefresh();
     });
 
-    $(document).on('click', '#add_service', function() {
+    // 削除
+    $('#service_delete').on('click', function () {
+        var service_id = $('#service_id_popup').val();
+        let body_data = { service_id: service_id }
+        axios.post(set_job_data_url, body_data).then(({ data }) => {
+            if (data.status_code == 200) {
+                scheduleMessageClassRemove(data.class_name, data.message, 'alert-danger')
+                rpa_schedule_show(service_id);
+            }
+        }).catch(() => {
+            alert("接続用API設定を確認してください");
+        });
+
+    });
+
+    $(document).on('click', '#add_service', function () {
         $('#add_service_message').html('');
         $('#new_service_create').html('保存');
         $('#service_delete').removeClass('d-block');
@@ -448,7 +479,7 @@ $(document).ready(function() {
         $("#add_service_modal").modal("show");
     });
 
-    $(document).on('click', '#new_service_create', function() {
+    $(document).on('click', '#new_service_create', function () {
 
         var service_id = $("#service_update_id").val();
         var service_name = $("#service_name").val();
@@ -512,7 +543,7 @@ $(document).ready(function() {
         });
     });
 
-    $(document).on('click', '.service_info_row', function() {
+    $(document).on('click', '.service_info_row', function () {
         var service_id = $(this).attr('service-id');
         rpa_schedule_show(service_id);
         $('.service_info_row.bg-secondary').removeClass("bg-secondary text-white");
@@ -521,7 +552,7 @@ $(document).ready(function() {
 
     });
 
-    $(document).on('click', '#service_edit_form', function() {
+    $(document).on('click', '#service_edit_form', function () {
         var closest_tr = $(this).closest('tr');
         var row_number = closest_tr.index();
         var service_info_id = closest_tr.attr("service-id");
@@ -536,7 +567,7 @@ $(document).ready(function() {
         $("#clicked_row_number").val(row_number);
         $("#add_service_modal").modal("show");
     })
-    $(document).on('click', '#service_delete', function() {
+    $(document).on('click', '#service_delete', function () {
         var service_id = $("#service_update_id").val();
         var clicked_row = $("#clicked_row_number").val();
 
@@ -555,13 +586,13 @@ $(document).ready(function() {
                 }
                 $('.service_info_row.bg-secondary').removeClass("bg-secondary text-white");
             }
-        }).catch(function(err) {
+        }).catch(function (err) {
             alert("接続用API設定を確認してください");
         });
     });
 
 
-    $(document).on('click', '#service_configureation', function() {
+    $(document).on('click', '#service_configureation', function () {
         var service_id = $(this).closest('tr').attr('service-id');
         $('#service_id_for_job_exec_trigger').val(service_id);
         $('#service_id_popup').val(service_id);
@@ -570,13 +601,13 @@ $(document).ready(function() {
         scheduleMessageClassRemove('', '', 'alert-success')
         scheduleMessageClassRemove('', '', 'alert-danger')
     });
-    $(document).on('click', '#service_execution', function() {
+    $(document).on('click', '#service_execution', function () {
         var closest_tr = $(this).closest('tr');
         var row_number = closest_tr.index();
         var service_id = closest_tr.attr("service-id");
         trigger(service_id, row_number);
     });
-    $(document).on('click', '.history_message', function() {
+    $(document).on('click', '.history_message', function () {
         var history_message = $(this).attr('hist_message');
         if (history_message == null) {
             history_message = "No message found.";

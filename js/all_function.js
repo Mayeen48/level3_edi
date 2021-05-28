@@ -47,13 +47,13 @@ async function trigger(service_id = null, service_traking_number = 0) {
 }
 
 function single_service_exec(service_id, service_traking_number) {
-    time_date_match(service_id, 1, function(time_data) {
+    time_date_match(service_id, 1, function (time_data) {
         if (time_data == 0) {
-            time_date_match(service_id, 2, function(date_data) {
+            time_date_match(service_id, 2, function (date_data) {
                 if (date_data == 0) {
-                    folderCheck(service_id, function(folder_data) {
+                    folderCheck(service_id, function (folder_data) {
                         if (folder_data == 0) {
-                            APICheck(service_id, function(job_execute_flg, data) {
+                            APICheck(service_id, function (job_execute_flg, data) {
                                 if (job_execute_flg == 0) {
                                     console.log('File Not Downloaded from trigger')
                                 } else {
@@ -174,7 +174,7 @@ function APICheck(service_id, callback) {
                     if (data.status_code == 200) {
                         var job_execute_flg = true;
                         if (file_name || file_path) {
-                            file_save_from_url(file_name, file_path, service.api_folder_path, function(download_status) {
+                            file_save_from_url(file_name, file_path, service.api_folder_path, function (download_status) {
                                 job_execute_flg = download_status;
                                 callback(job_execute_flg, data)
                             })
@@ -198,8 +198,9 @@ function APICheck(service_id, callback) {
 }
 
 function jobExec(service_id, service_traking_number = null, response_data = []) {
+    console.log('jobExec start');
     executionStartLogo(service_id)
-        // console.log('My' + file_name);
+    // console.log('My' + file_name);
     var order_history_data;
     var user_id = $('#user_id').val();
     var get_service_data_url = properties.get('get_service_data_url');
@@ -229,9 +230,11 @@ function jobExec(service_id, service_traking_number = null, response_data = []) 
                     if (response_data.hasOwnProperty("work")) {
                         batch_file_path_with_arg.replace('DATA-work', response_data.work)
                     }
+                    console.log('batch_file_path_with_arg');
                     console.log(batch_file_path_with_arg)
-                        // return 0;
+                    // return 0;
                     const myShellScript = exec(batch_file_path_with_arg);
+                    console.log(myShellScript);
                     myShellScript.stdout.on('data', (data) => {
                         console.log(data);
                         // console.log("Job executed");
@@ -241,7 +244,6 @@ function jobExec(service_id, service_traking_number = null, response_data = []) 
                             user_id: user_id,
                             service_id: (service.lv3_service_id),
                             status: 'Success',
-                            execute_name: '発注データ',
                             history_message: "Job Executed Successfully"
                         }
                         historyCreate(order_history_data);
@@ -251,15 +253,20 @@ function jobExec(service_id, service_traking_number = null, response_data = []) 
                             trigger((service.next_service_id), next_service_row);
                         }
                     });
-                    myShellScript.stderr.on('data', (data) => {
-                        console.error(data);
+                    myShellScript.stderr.on('close', (data) => {
+                        if (data == "0") {
+                            status = 'Success';
+                            message = '正常終了';
+                        } else {
+                            status = 'Error';
+                            message = 'Job 実行エラー';
+                        }
                         order_history_data = {
                             process_type: service_traking_number == null ? 'Auto' : 'Manual',
                             user_id: user_id,
                             service_id: (service.lv3_service_id),
-                            status: 'Error',
-                            execute_name: '発注データ',
-                            history_message: "May be batch file or path is not valid"
+                            status: status,
+                            history_message: message
                         }
                         historyCreate(order_history_data);
                         executionEndLogo(service_id);
@@ -310,7 +317,7 @@ function jobExec(service_id, service_traking_number = null, response_data = []) 
                     // setTimeout(function(){
                     axios.post(job_scenario_api, formData).then(({ data }) => {
                         // console.log(data)
-                        if (data.status == 0) {
+                        if (data.status == 1) {
                             if (checked_files.length > 0) {
                                 if (service.moved_folder_path) {
 
@@ -374,7 +381,7 @@ function executionEndLogo(service_id) {
 }
 
 function executionNormal() {
-    $("#service_info_table > tbody > tr").each(function() {
+    $("#service_info_table > tbody > tr").each(function () {
         $(this).find('td:eq(2)').html('<i class="far fa-play-circle" style="font-size:30px;"></i>');
     });
 }
@@ -445,24 +452,24 @@ function rpa_schedule_show(service_id) {
             for (var i = 0; i < schedule_array.length; i++) {
                 if (schedule_array[i].day == null) {
                     html_day += '<tr>';
-                    html_day += '<td><input class="form-control" type="checkbox" name="record"></td>';
+                    html_day += '<td><input class="" type="checkbox" name="record"></td>';
                     html_day += '<td>' + j + '</td>';
                     html_day += '<td><input type="time" id="time" schedule-id="' + schedule_array[i].schedule_id + '" status="' + schedule_array[i].disabled + '" value="' + schedule_array[i].time + '" required></td>';
-                    html_day += '<td><input class="form-control" type="checkbox" id="sun"' + (schedule_array[i].weekday[0] == 1 ? 'checked' : '') + '></td>';
-                    html_day += '<td><input class="form-control" type="checkbox" id="mon"' + (schedule_array[i].weekday[1] == 1 ? 'checked' : '') + ' ></td>';
-                    html_day += '<td><input class="form-control" type="checkbox" id="tue"' + (schedule_array[i].weekday[2] == 1 ? 'checked' : '') + ' ></td>';
-                    html_day += '<td><input class="form-control" type="checkbox" id="wed"' + (schedule_array[i].weekday[3] == 1 ? 'checked' : '') + ' ></td>';
-                    html_day += '<td><input class="form-control" type="checkbox" id="thu"' + (schedule_array[i].weekday[4] == 1 ? 'checked' : '') + ' ></td>';
-                    html_day += '<td><input class="form-control" type="checkbox" id="fri"' + (schedule_array[i].weekday[5] == 1 ? 'checked' : '') + ' ></td>';
-                    html_day += '<td><input class="form-control" type="checkbox" id="sat"' + (schedule_array[i].weekday[6] == 1 ? 'checked' : '') + ' ></td>';
+                    html_day += '<td><input class="" type="checkbox" id="sun"' + (schedule_array[i].weekday[0] == 1 ? 'checked' : '') + '></td>';
+                    html_day += '<td><input class="" type="checkbox" id="mon"' + (schedule_array[i].weekday[1] == 1 ? 'checked' : '') + ' ></td>';
+                    html_day += '<td><input class="" type="checkbox" id="tue"' + (schedule_array[i].weekday[2] == 1 ? 'checked' : '') + ' ></td>';
+                    html_day += '<td><input class="" type="checkbox" id="wed"' + (schedule_array[i].weekday[3] == 1 ? 'checked' : '') + ' ></td>';
+                    html_day += '<td><input class="" type="checkbox" id="thu"' + (schedule_array[i].weekday[4] == 1 ? 'checked' : '') + ' ></td>';
+                    html_day += '<td><input class="" type="checkbox" id="fri"' + (schedule_array[i].weekday[5] == 1 ? 'checked' : '') + ' ></td>';
+                    html_day += '<td><input class="" type="checkbox" id="sat"' + (schedule_array[i].weekday[6] == 1 ? 'checked' : '') + ' ></td>';
                     html_day += '</tr>';
                     j++;
                 } else {
                     html_day_sp += '<tr>';
-                    html_day_sp += '<td><input class="form-control" type="checkbox" name="rrrr"></td>';
+                    html_day_sp += '<td><input class="" type="checkbox" name="rrrr"></td>';
                     html_day_sp += '<td>' + k + '</td>';
                     html_day_sp += '<td><input type="time" id="time_sp" value="' + schedule_array[i].time + '" required></td>';
-                    html_day_sp += '<td><input class="form-control" type="checkbox" id="last_day" ' + (schedule_array[i].last_day == 1 ? 'checked' : '') + '></td>';
+                    html_day_sp += '<td><input class="" type="checkbox" id="last_day" ' + (schedule_array[i].last_day == 1 ? 'checked' : '') + '></td>';
                     html_day_sp += '<td><input type="number" id="day" maxlength="2" style="width:50px;" value="' + schedule_array[i].day + '" ></td>';
                     html_day_sp += '</tr>';
                     k++;
@@ -532,7 +539,7 @@ function rpa_schedule_show(service_id) {
             });
             $("#cmn_scenario_id").html(scenario_html);
         } else {
-            $("#cmn_scenario_id").html('<option value="">No Scenario found</option>');
+            $("#cmn_scenario_id").html('<option value="">シナリオがありません</option>');
         }
         if (all_service_data.length != 0) {
             var this_next_service = '';
@@ -652,7 +659,7 @@ function file_save_from_url(file_name, file_url, file_move_path, callback) {
         .then(resp => resp.blob())
         .then(blob => {
             var reader = new FileReader()
-            reader.onload = function() {
+            reader.onload = function () {
                 var buffer = new Buffer(reader.result)
                 fs.writeFile(file_move_path + "/" + file_name, buffer, {}, (err, res) => {
                     if (err) {
@@ -748,7 +755,7 @@ function history() {
             history_html += '<td>' + history.company_name + '</td>';
             history_html += '<td>' + history.service_name + '</td>';
             history_html += '<td>' + history.execute_type + '</td>';
-            history_html += '<td class="history_message" hist_message="' + history.message + '" style="text-align:center; font-size:30px;">' + (history.status == "Success" ? '<i class="fa fa-check-circle" aria-hidden="true"></i>' : '<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>') + '</td>';
+            history_html += '<td class="history_message" hist_message="' + history.message + '" style="text-align:center; font-size:30px;">' + history.status + (history.status == "Success" ? '<i class="fa fa-check-circle" aria-hidden="true"></i>' : '<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>') + '</td>';
             history_html += '<td>' + history.updated_at + '</td>';
             history_html += '</tr>';
             i++;
@@ -824,7 +831,7 @@ function serviceNameShow(cmn_connect_id) {
 
         }
     } else {
-        raw_html = '<tr remove_val="1"><td colspan="4">No data found</td></tr>';
+        raw_html = '<tr remove_val="1"><td colspan="4">登録済みのサービスがありません</td></tr>';
     }
     $('#service_info_table tbody').html(raw_html);
     if (service_data.length) {
@@ -852,7 +859,7 @@ function downloadPDF(file_name, file_path_url) {
     oReq.responseType = "blob";
     // When the file request finishes
     // Is up to you, the configuration for error events etc.
-    oReq.onload = function() {
+    oReq.onload = function () {
         // Once the file is downloaded, open a new window with the PDF
         // Remember to allow the POP-UPS in your browser
         var file = new Blob([oReq.response], {

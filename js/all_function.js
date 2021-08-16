@@ -11,26 +11,14 @@ async function trigger(service_id = null, service_traking_number = 0) {
                 service_id_array.push(element.lv3_service_id)
             });
         });
-        // traking_number_array.push($(this).index())
     } else {
         console.log('Manual')
         service_id_array.push(service_id)
         traking_number_array.push(service_traking_number)
     }
     service_id_array.sort();
-    // if (service_id == null || service_id == 0) {
-    //     $("#service_info_table > tbody > tr").each(function() {
-    //         var service_id_in_row = $(this).attr('service-id');
-    //         service_id_array.push(service_id_in_row)
-    //         traking_number_array.push($(this).index())
-    //     });
-    // } else {
-    //     service_id_array.push(service_id)
-    //     traking_number_array.push(service_traking_number)
-    // }
-
     if (service_id_array.length == 0) {
-        console.log("No service ID found");
+        log.info("No service ID found");
         return 0;
     }
     if (setting_modul_check) {
@@ -48,10 +36,13 @@ async function trigger(service_id = null, service_traking_number = 0) {
 
 function single_service_exec(service_id, service_traking_number) {
     time_date_match(service_id, 1, function(time_data) {
+        // log.info(time_data);
         if (time_data == 0) {
             time_date_match(service_id, 2, function(date_data) {
+                // log.info(date_data);
                 if (date_data == 0) {
                     folderCheck(service_id, function(folder_data) {
+                        // log.info("folderCheck " + folder_data);
                         if (folder_data == 0) {
                             APICheck(service_id, function(job_execute_flg, data) {
                                 if (job_execute_flg == 0) {
@@ -106,7 +97,7 @@ function time_date_match(service_id, type = 1, callback) {
 }
 
 function folderCheck(service_id, callback) {
-    // console.log("In check Folder " + service_id);
+    // log.info("In check Folder " + service_id);
     var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
     var get_service_data_url = properties.get('get_service_data_url');
     var body_data = {
@@ -116,7 +107,7 @@ function folderCheck(service_id, callback) {
         data
     }) => {
         var service = data.service;
-        // console.log(service)
+        // log.info(service)
         if (!jQuery.isEmptyObject(service)) {
             let checked_files = [];
             if (service.path_execution_flag) {
@@ -128,16 +119,17 @@ function folderCheck(service_id, callback) {
                         }
                     }
                 } catch (error) {
-                    console.log("Folder is empty");
-                    // executionErrorLogo(4)
+                    log.info("Folder is empty")
+                        // executionErrorLogo(4)
                 }
-                // console.log(checked_files)
+                log.info("Total Files: " + checked_files.length)
+                    // console.log(checked_files)
                 if (checked_files.length > 0) {
                     if (service.job_execution_flag) {
                         callback(1);
                     } else {
                         callback(0);
-                        console.log("Job execution off");
+                        log.info("Job execution off")
                     }
                 } else {
                     callback(0);
@@ -278,11 +270,13 @@ function jobExec(service_id, service_traking_number = null, response_data = []) 
                     executionErrorLogo(service_id);
                 }
             } else if (service.execution == 'scenario') {
-                // console.log("HI");
+                log.info(service.execution);
                 var checked_files = [];
 
                 var job_scenario_api = properties.get('job_scenario_api');
                 var scenario_array = JSON.parse(properties.get('scenario_array'))[service.cmn_scenario_id];
+                // log.info(service.cmn_scenario_id);
+                log.info(scenario_array);
                 if (scenario_array) {
                     var scenario_array_length = Object.keys(scenario_array).length;
                     var formData = new FormData();
@@ -290,37 +284,41 @@ function jobExec(service_id, service_traking_number = null, response_data = []) 
                     formData.append('email', email);
                     formData.append('password', password);
                     for (let i = 0; i < scenario_array_length; i++) {
+                        log.info("Loop Val: " + i)
                         const array_key = Object.keys(scenario_array)[i];
                         const array_value = Object.values(scenario_array)[i];
+                        log.info(array_value)
                         if (array_value == "LV3_FILE_DATA") {
                             try {
                                 let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
-                                for (let i = 0; i < files_of_folder.length; i++) {
-                                    if (files_test(service.check_folder_path + '/' + files_of_folder[i])) {
-                                        checked_files.push(files_of_folder[i])
+                                for (let j = 0; j < files_of_folder.length; j++) {
+                                    if (files_test(service.check_folder_path + '/' + files_of_folder[j])) {
+                                        checked_files.push(files_of_folder[j])
                                     }
                                 }
                             } catch (error) {
                                 console.log("Folder is empty");
                                 // executionErrorLogo(4)
                             }
-                            // console.log(checked_files)
+                            log.info(checked_files)
                             if (checked_files.length > 0) {
                                 let file_url_full = service.check_folder_path + '/' + checked_files[0]
+                                log.info(file_url_full)
                                 formData.append(array_key, new Blob([fs.readFileSync(file_url_full)]), checked_files[0]);
                             }
 
                         } else {
                             formData.append(array_key, array_value);
                         }
+
                     }
+                    // log.info(formData)
                     // setTimeout(function(){
                     axios.post(job_scenario_api, formData).then(({ data }) => {
-                        // console.log(data)
+                        log.info(data)
                         if (data.status == 1) {
                             if (checked_files.length > 0) {
                                 if (service.moved_folder_path) {
-
                                     moveFile(service.check_folder_path, service.moved_folder_path, checked_files[0])
                                     order_history_data = {
                                         process_type: service_traking_number == null ? 'Auto' : 'Manual',
@@ -330,9 +328,10 @@ function jobExec(service_id, service_traking_number = null, response_data = []) 
                                         execute_name: 'Shipment',
                                         history_message: "File Moved"
                                     }
+                                    log.info("File moved");
                                     historyCreate(order_history_data);
                                 } else {
-                                    console.log("Can not move file");
+                                    log.info("Can not move file");
                                     order_history_data = {
                                         process_type: service_traking_number == null ? 'Auto' : 'Manual',
                                         user_id: user_id,
@@ -344,10 +343,10 @@ function jobExec(service_id, service_traking_number = null, response_data = []) 
                                     historyCreate(order_history_data);
                                 }
                             } else {
-                                console.log("No file found");
+                                log.info("No file found");
                             }
                         } else {
-                            console.log("Not OK");
+                            log.info("Please check your file");
                         }
                         executionEndLogo(service_id);
                     });
@@ -582,6 +581,7 @@ function user_login() {
                 alert(data.message);
                 window.close();
             } else {
+                log.info('Logged by: ' + data.user_name);
                 $('#user_name_show').html(data.user_name);
                 $('#user_id').val(data.user_id);
                 history();

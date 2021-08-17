@@ -8,7 +8,6 @@ var FileSaver = require('file-saver');
 var { shell } = require('electron');
 var schedule = require('node-schedule');
 var axios = require('axios');
-const lockfile = require('proper-lockfile');
 const log = require('electron-log');
 let today = new Date().toISOString().slice(0, 10)
 

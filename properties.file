@@ -23,6 +23,8 @@ trigger_execution_time=10
 # File data value must be LV3_FILE_DATA
 scenario_array={ "4":{"up_file":"LV3_FILE_DATA","order_id":1,"cmn_connect_id":"1"}, "12":{"send_data1":"test01","send_data2":"test02"} }
 # scenario_array=[11=>[file_data=$FOUND_FILE_PATH], 12=>[send_data='test01',send_data2='test02'],]
+# log.transports.console.level = false; //Default is info
+log_level=info
 
 # schedule_file_data_url=http://localhost/jcs/api/schedule_file_data
 

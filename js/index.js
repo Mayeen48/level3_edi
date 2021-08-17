@@ -8,20 +8,52 @@ var FileSaver = require('file-saver');
 var { shell } = require('electron');
 var schedule = require('node-schedule');
 var axios = require('axios');
+const lockfile = require('proper-lockfile');
 const log = require('electron-log');
 let today = new Date().toISOString().slice(0, 10)
-log.transports.file.resolvePath = () => 'logs/level3-' + today + '.log';
-log.transports.console.level = false;
-// log.transports.file.getFile();
+
 try {
     var properties = PropertiesReader('properties.file');
     var email = properties.get('user_name');
     var password = properties.get('password');
+    var log_level = properties.get('log_level');
 } catch (err) {
     alert("properties.fileが見つかりません。実行フォルダに配置してください。")
     window.close();
-    console.log(err.message);
+    log.info(err.message);
 }
+
+log.transports.file.resolvePath = () => 'logs/level3-' + today + '.log';
+log.transports.console.level = log_level;
+
+log.catchErrors();
+// log.catchErrors({
+//     showDialog: false,
+//     onError(error, versions, submitIssue) {
+//         electron.dialog.showMessageBox({
+//                 title: 'An error occurred',
+//                 message: error.message,
+//                 detail: error.stack,
+//                 type: 'error',
+//                 buttons: ['Ignore', 'Report', 'Exit'],
+//             })
+//             .then((result) => {
+//                 if (result.response === 1) {
+//                     submitIssue('https://github.com/my-acc/my-app/issues/new', {
+//                         title: `Error report for ${versions.app}`,
+//                         body: 'Error:\n```' + error.stack + '\n```\n' + `OS: ${versions.os}`
+//                     });
+//                     return;
+//                 }
+
+//                 if (result.response === 2) {
+//                     electron.app.quit();
+//                 }
+//             });
+//     }
+// });
+// log.transports.file.getFile();
+
 var trigger_execution_time_var = (properties.get('trigger_execution_time'));
 if ($.isNumeric(trigger_execution_time_var)) {
     var trigger_execution_time = trigger_execution_time_var * 1000;
@@ -103,12 +135,12 @@ $(document).ready(function() {
     // 自動実行
     $('#interval_flag').on('click', function() {
         $('#interval_flag:checked').each(function() {
-            console.log('schedule start');
+            log.info('schedule start');
             interval_trigger = setInterval(trigger, trigger_execution_time);
             $('#interval_status').text('動作中').removeClass('bg-danger').addClass('bg-info');
         })
         $('#interval_flag:not(:checked)').each(function() {
-            console.log('schedule end');
+            log.info('schedule end');
             clearInterval(interval_trigger);
             $('#interval_status').text('停止中').removeClass('bg-info').addClass('bg-danger');
         })
@@ -342,7 +374,7 @@ $(document).ready(function() {
             var sourceVal = document.getElementById("check_folder_path").files[0].path;
             $("#check_folder_path_box").val(sourceVal);
         } catch (error) {
-            console.log(error)
+            log.info(error)
         }
     });
     $("#move_folder_path").change(function() {
@@ -350,7 +382,7 @@ $(document).ready(function() {
             var moveVal = document.getElementById("move_folder_path").files[0].path;
             $("#move_folder_path_box").val(moveVal);
         } catch (error) {
-            console.log(error)
+            log.info(error)
         }
     });
     $("#batch_file_path").change(function() {
@@ -358,7 +390,7 @@ $(document).ready(function() {
             var batchVal = document.getElementById("batch_file_path").files[0].path;
             $("#batch_file_path_box").val(batchVal);
         } catch (error) {
-            console.log(error)
+            log.info(error)
         }
     });
     $("#api_folder_path").change(function() {
@@ -366,7 +398,7 @@ $(document).ready(function() {
             var apiPathVal = document.getElementById("api_folder_path").files[0].path;
             $("#api_folder_path_box").val(apiPathVal);
         } catch (error) {
-            console.log(error)
+            log.info(error)
         }
     });
     $('#file_path_save,#api_url_save').on('click', function() {
@@ -401,7 +433,7 @@ $(document).ready(function() {
             scheduleMessageClassRemove(data.class_name, data.message, 'alert-danger')
             rpa_schedule_show(service_id);
         }).catch(() => {
-            console.log("接続用API設定を確認してください");
+            log.info("接続用API設定を確認してください");
         });
     });
 

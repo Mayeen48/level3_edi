@@ -353,7 +353,20 @@ async function jobExec(service_id, service_traking_number = null, response_data 
                                     }
                                     historyCreate(order_history_data);
                                 }
-                                fs.unlinkSync(service.check_folder_path + '/' + checked_files[0] + '.lock');
+                                try {
+                                    fs.unlinkSync(service.check_folder_path + '/' + checked_files[0] + '.lock');
+                                } catch (error) {
+                                    log.info("Can not remove .lock file");
+                                    order_history_data = {
+                                        process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                                        user_id: user_id,
+                                        service_id: (service.lv3_service_id),
+                                        status: 'Failed',
+                                        execute_name: 'Shipment',
+                                        history_message: "File saved and moved but could not remove .lock file"
+                                    }
+                                    historyCreate(order_history_data);
+                                }
                             } else {
                                 log.info("No file found");
                             }

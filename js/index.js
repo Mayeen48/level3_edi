@@ -9,7 +9,7 @@ var { shell } = require('electron');
 var schedule = require('node-schedule');
 var axios = require('axios');
 const log = require('electron-log');
-let today = new Date().toISOString().slice(0, 10)
+// let today = new Date().toISOString().slice(0, 10)
 
 try {
     var properties = PropertiesReader('properties.file');
@@ -22,7 +22,7 @@ try {
     log.info(err.message);
 }
 
-log.transports.file.resolvePath = () => 'logs/level3-' + today + '.log';
+log.transports.file.resolvePath = () => 'logs/level3-' + new Date().toISOString().slice(0, 10) + '.log';
 log.transports.console.level = log_level;
 
 log.catchErrors();

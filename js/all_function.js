@@ -18,7 +18,7 @@ async function trigger(service_id = null, service_traking_number = 0) {
     }
     service_id_array.sort();
     if (service_id_array.length == 0) {
-        log.info("No service ID found");
+        log.debug("No service ID found");
         return 0;
     }
     if (setting_modul_check) {
@@ -28,6 +28,7 @@ async function trigger(service_id = null, service_traking_number = 0) {
     let i = 0;
     while (i < service_id_array.length) {
         service_id = service_id_array[i];
+
         service_traking_number = traking_number_array[i];
         await single_service_exec(service_id, service_traking_number)
         i++;
@@ -90,6 +91,7 @@ function time_date_match(service_id, type = 1, callback) {
             }
         }).catch((e) => {
             alert("接続用API設定を確認してください");
+            log.error('time_date_match [lv3_schedule_data_url]:' + lv3_schedule_data_url +  ' exception:' + e)
         });
     } else {
         log.info("No service id found");
@@ -185,16 +187,17 @@ function APICheck(service_id, callback) {
                             callback(job_execute_flg, data)
                         }
                     } else {
-                        // log.info("API has no file")
+                        log.debug("API has no file")
                     }
-                }).catch(() => {
+                }).catch((e) => {
                     alert('May be API is problem');
+                    log.error('APICheck [service.api_url]:' + service.api_url +  ' exception:' + e)
                 });
             } else {
-                log.info('API Trigger not set')
+                log.debug('API Trigger not set')
             }
         } else {
-            log.info('API Folder Path Directory not found.');
+            log.debug('API Folder Path Directory not found.');
         }
 
     })
@@ -726,8 +729,9 @@ function customerInfo(user_id = null) {
             raw_html += '</tr>';
         }
         $('#customer_info_table tbody').html(raw_html);
-    }).catch(() => {
+    }).catch((e) => {
         alert("接続用API設定を確認してください");
+        log.error('customerInfo [get_customer_url]:' + get_customer_url +  ' exception:' + e)
     })
 }
 
@@ -748,8 +752,9 @@ function historyCreate(history_data) {
         data
     }) => {
         history();
-    }).catch(() => {
+    }).catch((e) => {
         alert("接続用API設定を確認してください");
+        log.error('historyCreate [history_create_url]:' + history_create_url +  ' exception:' + e)
     });
 }
 
@@ -794,8 +799,9 @@ function history() {
                 "url": "./js/DataTableJapaneseLanguage.json"
             }
         });
-    }).catch(() => {
+    }).catch((e) => {
         alert("接続用API設定を確認してください");
+        log.error('history [history_url]:' + history_url +  ' exception:' + e)
     });
 
 }

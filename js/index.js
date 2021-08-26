@@ -9,21 +9,28 @@ var { shell } = require('electron');
 var schedule = require('node-schedule');
 var axios = require('axios');
 const log = require('electron-log');
-// let today = new Date().toISOString().slice(0, 10)
 
 try {
     var properties = PropertiesReader('properties.file');
     var email = properties.get('user_name');
     var password = properties.get('password');
-    var log_level = properties.get('log_level');
+    var file_log_level = properties.get('file_log_level');
+    var console_log_level = properties.get('console_log_level');
+    var send_mail_address = properties.get('send_mail_address');
 } catch (err) {
-    alert("properties.fileが見つかりません。実行フォルダに配置してください。")
+    alert("properties.fileが見つかりません。実行フォルダに配置してください。また、内容を確認してください")
     window.close();
-    log.info(err.message);
+    log.error(err.message);
 }
 
 log.transports.file.resolvePath = () => 'logs/level3-' + new Date().toISOString().slice(0, 10) + '.log';
-log.transports.console.level = log_level;
+
+log.transports.console.level = console_log_level;   // console log level
+log.transports.file.level = file_log_level;         // file log level
+log.debug('app start---');
+
+
+
 
 log.catchErrors();
 // log.catchErrors({
@@ -63,7 +70,10 @@ if ($.isNumeric(trigger_execution_time_var)) {
 var interval_trigger;
 
 $(document).ready(function() {
+    mailsend("test sub","message");
+
     user_login();
+    
     interval_trigger = setInterval(trigger, trigger_execution_time);
 
     $(function() {

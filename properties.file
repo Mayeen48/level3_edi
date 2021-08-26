@@ -1,7 +1,9 @@
-user_name=slr01@test.jp
-# user_name=byr01@test.jp
+# user_name=slr01@test.jp
+#user_name=byr01@test.jp
 # user_name=super_admin@jacos.co.jp
 # user_name=user@jacos.co.jp
+
+user_name=biware_level3@jacos.co.jp
 password=Qe75ymSr
 login_url=http://localhost/jcs/api/get_user_login
 history_url=http://localhost/jcs/api/history_url
@@ -23,8 +25,15 @@ trigger_execution_time=10
 # File data value must be LV3_FILE_DATA
 scenario_array={ "4":{"up_file":"LV3_FILE_DATA","order_id":1,"cmn_connect_id":"1"}, "12":{"send_data1":"test01","send_data2":"test02"} }
 # scenario_array=[11=>[file_data=$FOUND_FILE_PATH], 12=>[send_data='test01',send_data2='test02'],]
-# log.transports.console.level = false; //Default is info
-log_level=info
+
+# log level
+#  false(no log)
+#  error, warn, info, verbose, debug, silly
+console_log_level=false
+file_log_level=debug
+
+# mail
+send_mail_address=sakaki@jacos.co.jp
 
 # schedule_file_data_url=http://localhost/jcs/api/schedule_file_data
 
@@ -33,8 +42,6 @@ log_level=info
 # add_customer_url=http://localhost/level3_server/add_customer
 
 # delete_customer_url=http://localhost/level3_server/delete_customer_url
-
-
 
 report_api_url=http://localhost/level3_server/api/report_api
 

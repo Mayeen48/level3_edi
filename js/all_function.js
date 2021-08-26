@@ -1,4 +1,6 @@
 global_customers = [];
+
+
 async function trigger(service_id = null, service_traking_number = 0) {
     var setting_modul_check = $('#schedule_modal').is(':visible');
     var service_id_array = [];
@@ -36,16 +38,16 @@ async function trigger(service_id = null, service_traking_number = 0) {
 }
 
 function single_service_exec(service_id, service_traking_number) {
-    time_date_match(service_id, 1, function(time_data) {
+    time_date_match(service_id, 1, function (time_data) {
         // log.info(time_data);
         if (time_data == 0) {
-            time_date_match(service_id, 2, function(date_data) {
+            time_date_match(service_id, 2, function (date_data) {
                 // log.info(date_data);
                 if (date_data == 0) {
-                    folderCheck(service_id, function(folder_data) {
+                    folderCheck(service_id, function (folder_data) {
                         // log.info("folderCheck " + folder_data);
                         if (folder_data == 0) {
-                            APICheck(service_id, function(job_execute_flg, data) {
+                            APICheck(service_id, function (job_execute_flg, data) {
                                 if (job_execute_flg == 0) {
                                     log.info('File Not Downloaded from trigger')
                                 } else {
@@ -91,12 +93,15 @@ function time_date_match(service_id, type = 1, callback) {
             }
         }).catch((e) => {
             alert("接続用API設定を確認してください");
-            log.error('time_date_match [lv3_schedule_data_url]:' + lv3_schedule_data_url +  ' exception:' + e)
+            log.error('time_date_match [lv3_schedule_data_url]:' + lv3_schedule_data_url + ' exception:' + e)
+            mailsend("[Level3]エラー", 'time_date_match [lv3_schedule_data_url]:' + lv3_schedule_data_url + ' exception:' + e);
+
         });
     } else {
         log.info("No service id found");
     }
 }
+
 
 function folderCheck(service_id, callback) {
     // log.info("In check Folder " + service_id);
@@ -123,7 +128,7 @@ function folderCheck(service_id, callback) {
                     }
                 } catch (error) {
                     log.info("Folder is empty")
-                        // executionErrorLogo(4)
+                    // executionErrorLogo(4)
                 }
                 if (checked_files.length > 0) {
                     var lock_flag = 0;
@@ -154,10 +159,11 @@ function folderCheck(service_id, callback) {
             }
 
         } else {
-            log.info('Service ' + (service_row + 1) + ' Folder setup not completed yet');
+            log.error('Service ' + (service_row + 1) + ' Folder setup not completed yet');
         }
-    }).catch(() => {
-        log.info('Service ' + (service_row + 1) + ' Folder setup not completed yet');
+    }).catch((e) => {
+        log.error('folderCheck [get_service_data_url]:' + get_service_data_url + ' exception:' + e);
+
     });
 }
 
@@ -179,7 +185,7 @@ function APICheck(service_id, callback) {
                     if (data.status_code == 200) {
                         var job_execute_flg = true;
                         if (file_name || file_path) {
-                            file_save_from_url(file_name, file_path, service.api_folder_path, function(download_status) {
+                            file_save_from_url(file_name, file_path, service.api_folder_path, function (download_status) {
                                 job_execute_flg = download_status;
                                 callback(job_execute_flg, data)
                             })
@@ -187,17 +193,19 @@ function APICheck(service_id, callback) {
                             callback(job_execute_flg, data)
                         }
                     } else {
-                        log.debug("API has no file")
+                        log.info("API has no file")
                     }
                 }).catch((e) => {
-                    alert('May be API is problem');
-                    log.error('APICheck [service.api_url]:' + service.api_url +  ' exception:' + e)
+                    log.error('APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
+                    mailsend("[Level3]エラー", 'APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
+                    alert('API is problem');
+
                 });
             } else {
-                log.debug('API Trigger not set')
+                log.info('API Trigger not set')
             }
         } else {
-            log.debug('API Folder Path Directory not found.');
+            log.error('API Folder Path Directory not found.');
         }
 
     })
@@ -206,7 +214,7 @@ function APICheck(service_id, callback) {
 async function jobExec(service_id, service_traking_number = null, response_data = []) {
     log.info('jobExec start');
     executionStartLogo(service_id)
-        // log.info('My' + file_name);
+    // log.info('My' + file_name);
     var order_history_data;
     var user_id = $('#user_id').val();
     var get_service_data_url = properties.get('get_service_data_url');
@@ -238,7 +246,7 @@ async function jobExec(service_id, service_traking_number = null, response_data 
                     }
                     log.info('batch_file_path_with_arg');
                     log.info(batch_file_path_with_arg)
-                        // return 0;
+                    // return 0;
                     const myShellScript = exec(batch_file_path_with_arg);
                     log.info(myShellScript);
                     myShellScript.stdout.on('data', (data) => {
@@ -315,7 +323,7 @@ async function jobExec(service_id, service_traking_number = null, response_data 
                         if (array_value == "LV3_FILE_DATA") {
                             if (checked_files.length > 0) {
                                 let file_url_full = service.check_folder_path + '/' + checked_files[0];
-                                fs.writeFile(service.check_folder_path + '/' + checked_files[0] + '.lock', 'demo', function(err) {
+                                fs.writeFile(service.check_folder_path + '/' + checked_files[0] + '.lock', 'demo', function (err) {
                                     if (err) throw log.debug(err);
                                     log.debug('File is created successfully.');
                                 });
@@ -409,7 +417,7 @@ function executionEndLogo(service_id) {
 }
 
 function executionNormal() {
-    $("#service_info_table > tbody > tr").each(function() {
+    $("#service_info_table > tbody > tr").each(function () {
         $(this).find('td:eq(2)').html('<i class="far fa-play-circle" style="font-size:30px;"></i>');
     });
 }
@@ -524,6 +532,12 @@ function rpa_schedule_show(service_id) {
             } else {
                 $("#path_execution_flag").prop("checked", false);
             }
+            // if (file_path_info['api_execution_flag'] == 1) {
+            //     $("#api_execution_flag").prop("checked", true);
+            // } else {
+            //     $("#api_execution_flag").prop("checked", false);
+            // }
+
             $('#file_path_id').val(file_path_info['file_path_id']);
             $('#check_folder_path_box').val(file_path_info['check_folder_path']);
             $('#move_folder_path_box').val(file_path_info['moved_folder_path']);
@@ -533,6 +547,7 @@ function rpa_schedule_show(service_id) {
         } else {
             $("#file_path_id").val('');
             $("#path_execution_flag").prop("checked", false);
+            // $("#api_execution_flag").prop("checked", false);
             $('#check_folder_path_box').val('');
             $('#move_folder_path_box').val('');
             $('#api_url').val('');
@@ -584,8 +599,9 @@ function rpa_schedule_show(service_id) {
         }
         $('.loader').removeClass('d-block');
         $('.loader').addClass('d-none');
-    }).catch(() => {
-        log.info("接続用API設定を確認してください");
+    }).catch((e) => {
+        log.error('rpa_schedule_show [get_schedule_data_url]:' + get_schedule_data_url + ' exception:' + e);
+        mailsend("[Level3]エラー", 'rpa_schedule_show [get_schedule_data_url]:' + get_schedule_data_url + ' exception:' + e);
     });
 }
 
@@ -595,6 +611,7 @@ function user_login() {
     var login_url = properties.get('login_url');
     if (user_name == null || user_name == '' || password == null || password == '') {
         alert("Email&Passwordがありません。properties.fileを確認してください。\n");
+        log.error("Email&Passwordがありません。properties.fileを確認してください。");
         window.close();
         return 0;
     } else {
@@ -607,6 +624,7 @@ function user_login() {
         }) => {
             if (data.message != "success") {
                 alert(data.message);
+                log.error(data.message);
                 window.close();
             } else {
                 log.info('Logged by: ' + data.user_name);
@@ -621,6 +639,7 @@ function user_login() {
             }
         }).catch(() => {
             alert("サーバーに接続できません。");
+            log.error("サーバーに接続できません。");
             window.close();
         });
         // API Data 
@@ -688,7 +707,7 @@ function file_save_from_url(file_name, file_url, file_move_path, callback) {
         .then(resp => resp.blob())
         .then(blob => {
             var reader = new FileReader()
-            reader.onload = function() {
+            reader.onload = function () {
                 var buffer = new Buffer(reader.result)
                 fs.writeFile(file_move_path + "/" + file_name, buffer, {}, (err, res) => {
                     if (err) {
@@ -730,8 +749,9 @@ function customerInfo(user_id = null) {
         }
         $('#customer_info_table tbody').html(raw_html);
     }).catch((e) => {
+        log.error('customerInfo [get_customer_url]:' + get_customer_url + ' exception:' + e);
+        mailsend("[Level3]エラー", 'customerInfo [get_customer_url]:' + get_customer_url + ' exception:' + e);
         alert("接続用API設定を確認してください");
-        log.error('customerInfo [get_customer_url]:' + get_customer_url +  ' exception:' + e)
     })
 }
 
@@ -753,8 +773,9 @@ function historyCreate(history_data) {
     }) => {
         history();
     }).catch((e) => {
+        log.error('historyCreate [history_create_url]:' + history_create_url + ' exception:' + e);
+        mailsend("[Level3]エラー", 'historyCreate [history_create_url]:' + history_create_url + ' exception:' + e);
         alert("接続用API設定を確認してください");
-        log.error('historyCreate [history_create_url]:' + history_create_url +  ' exception:' + e)
     });
 }
 
@@ -800,8 +821,9 @@ function history() {
             }
         });
     }).catch((e) => {
+        log.error('history [history_url]:' + history_url + ' exception:' + e)
+        mailsend("[Level3]エラー", 'history [history_url]:' + history_url + ' exception:' + e);
         alert("接続用API設定を確認してください");
-        log.error('history [history_url]:' + history_url +  ' exception:' + e)
     });
 
 }
@@ -891,7 +913,7 @@ function downloadPDF(file_name, file_path_url) {
     oReq.responseType = "blob";
     // When the file request finishes
     // Is up to you, the configuration for error events etc.
-    oReq.onload = function() {
+    oReq.onload = function () {
         // Once the file is downloaded, open a new window with the PDF
         // Remember to allow the POP-UPS in your browser
         var file = new Blob([oReq.response], {

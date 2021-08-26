@@ -38,16 +38,16 @@ async function trigger(service_id = null, service_traking_number = 0) {
 }
 
 function single_service_exec(service_id, service_traking_number) {
-    time_date_match(service_id, 1, function (time_data) {
+    time_date_match(service_id, 1, function(time_data) {
         // log.info(time_data);
         if (time_data == 0) {
-            time_date_match(service_id, 2, function (date_data) {
+            time_date_match(service_id, 2, function(date_data) {
                 // log.info(date_data);
                 if (date_data == 0) {
-                    folderCheck(service_id, function (folder_data) {
+                    folderCheck(service_id, function(folder_data) {
                         // log.info("folderCheck " + folder_data);
                         if (folder_data == 0) {
-                            APICheck(service_id, function (job_execute_flg, data) {
+                            APICheck(service_id, function(job_execute_flg, data) {
                                 if (job_execute_flg == 0) {
                                     log.info('File Not Downloaded from trigger')
                                 } else {
@@ -128,7 +128,7 @@ function folderCheck(service_id, callback) {
                     }
                 } catch (error) {
                     log.info("Folder is empty")
-                    // executionErrorLogo(4)
+                        // executionErrorLogo(4)
                 }
                 if (checked_files.length > 0) {
                     var lock_flag = 0;
@@ -154,7 +154,7 @@ function folderCheck(service_id, callback) {
                     log.info("Checked folder is empty");
                 }
             } else {
-                // log.info("Path execution off");
+                log.info("Folder Path execution off");
                 callback(0);
             }
 
@@ -170,51 +170,50 @@ function folderCheck(service_id, callback) {
 function APICheck(service_id, callback) {
     var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
     var get_service_data_url = properties.get('get_service_data_url');
-    var body_data = {
-        service_id: service_id
-    }
-    axios.post(get_service_data_url, body_data).then(({
-        data
-    }) => {
+    var body_data = { service_id: service_id }
+    axios.post(get_service_data_url, body_data).then(({ data }) => {
         var service = data.service;
-        if (fs.existsSync(service.api_folder_path)) {
-            if (service.api_url) {
-                axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
-                    var file_name = data.file_name
-                    var file_path = data.file_path
-                    if (data.status_code == 200) {
-                        var job_execute_flg = true;
-                        if (file_name || file_path) {
-                            file_save_from_url(file_name, file_path, service.api_folder_path, function (download_status) {
-                                job_execute_flg = download_status;
+        if (service.api_execution_flag) {
+            if (fs.existsSync(service.api_folder_path)) {
+                if (service.api_url) {
+                    axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
+                        var file_name = data.file_name
+                        var file_path = data.file_path
+                        if (data.status_code == 200) {
+                            var job_execute_flg = true;
+                            if (file_name || file_path) {
+                                file_save_from_url(file_name, file_path, service.api_folder_path, function(download_status) {
+                                    job_execute_flg = download_status;
+                                    callback(job_execute_flg, data)
+                                })
+                            } else {
                                 callback(job_execute_flg, data)
-                            })
+                            }
                         } else {
-                            callback(job_execute_flg, data)
+                            log.info("API has no file")
                         }
-                    } else {
-                        log.info("API has no file")
-                    }
-                }).catch((e) => {
-                    log.error('APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
-                    mailsend("[Level3]エラー", 'APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
-                    alert('API is problem');
+                    }).catch((e) => {
+                        log.error('APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
+                        mailsend("[Level3]エラー", 'APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
+                        alert('API is problem');
 
-                });
+                    });
+                } else {
+                    log.info('API Trigger not set')
+                }
             } else {
-                log.info('API Trigger not set')
+                log.error('API Folder Path Directory not found.');
             }
         } else {
-            log.error('API Folder Path Directory not found.');
+            log.info('API Execution flag off')
         }
-
     })
 }
 
 async function jobExec(service_id, service_traking_number = null, response_data = []) {
     log.info('jobExec start');
     executionStartLogo(service_id)
-    // log.info('My' + file_name);
+        // log.info('My' + file_name);
     var order_history_data;
     var user_id = $('#user_id').val();
     var get_service_data_url = properties.get('get_service_data_url');
@@ -246,7 +245,7 @@ async function jobExec(service_id, service_traking_number = null, response_data 
                     }
                     log.info('batch_file_path_with_arg');
                     log.info(batch_file_path_with_arg)
-                    // return 0;
+                        // return 0;
                     const myShellScript = exec(batch_file_path_with_arg);
                     log.info(myShellScript);
                     myShellScript.stdout.on('data', (data) => {
@@ -323,7 +322,7 @@ async function jobExec(service_id, service_traking_number = null, response_data 
                         if (array_value == "LV3_FILE_DATA") {
                             if (checked_files.length > 0) {
                                 let file_url_full = service.check_folder_path + '/' + checked_files[0];
-                                fs.writeFile(service.check_folder_path + '/' + checked_files[0] + '.lock', 'demo', function (err) {
+                                fs.writeFile(service.check_folder_path + '/' + checked_files[0] + '.lock', 'demo', function(err) {
                                     if (err) throw log.debug(err);
                                     log.debug('File is created successfully.');
                                 });
@@ -417,7 +416,7 @@ function executionEndLogo(service_id) {
 }
 
 function executionNormal() {
-    $("#service_info_table > tbody > tr").each(function () {
+    $("#service_info_table > tbody > tr").each(function() {
         $(this).find('td:eq(2)').html('<i class="far fa-play-circle" style="font-size:30px;"></i>');
     });
 }
@@ -532,11 +531,11 @@ function rpa_schedule_show(service_id) {
             } else {
                 $("#path_execution_flag").prop("checked", false);
             }
-            // if (file_path_info['api_execution_flag'] == 1) {
-            //     $("#api_execution_flag").prop("checked", true);
-            // } else {
-            //     $("#api_execution_flag").prop("checked", false);
-            // }
+            if (file_path_info['api_execution_flag'] == 1) {
+                $("#api_execution_flag").prop("checked", true);
+            } else {
+                $("#api_execution_flag").prop("checked", false);
+            }
 
             $('#file_path_id').val(file_path_info['file_path_id']);
             $('#check_folder_path_box').val(file_path_info['check_folder_path']);
@@ -707,7 +706,7 @@ function file_save_from_url(file_name, file_url, file_move_path, callback) {
         .then(resp => resp.blob())
         .then(blob => {
             var reader = new FileReader()
-            reader.onload = function () {
+            reader.onload = function() {
                 var buffer = new Buffer(reader.result)
                 fs.writeFile(file_move_path + "/" + file_name, buffer, {}, (err, res) => {
                     if (err) {
@@ -913,7 +912,7 @@ function downloadPDF(file_name, file_path_url) {
     oReq.responseType = "blob";
     // When the file request finishes
     // Is up to you, the configuration for error events etc.
-    oReq.onload = function () {
+    oReq.onload = function() {
         // Once the file is downloaded, open a new window with the PDF
         // Remember to allow the POP-UPS in your browser
         var file = new Blob([oReq.response], {

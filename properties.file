@@ -1,9 +1,9 @@
-# user_name=slr01@test.jp
+user_name=slr01@test.jp
 #user_name=byr01@test.jp
 # user_name=super_admin@jacos.co.jp
 # user_name=user@jacos.co.jp
 
-user_name=biware_level3@jacos.co.jp
+# user_name=biware_level3@jacos.co.jp
 password=Qe75ymSr
 login_url=http://localhost/jcs/api/get_user_login
 history_url=http://localhost/jcs/api/history_url

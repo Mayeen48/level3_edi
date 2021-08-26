@@ -105,66 +105,62 @@ function time_date_match(service_id, type = 1, callback) {
 
 function folderCheck(service_id, callback) {
     // log.info("In check Folder " + service_id);
+    // =====================
+    var service = [];
+    global_customers.forEach(each_customer => {
+        services = each_customer.service_info
+        services.forEach(each_service => {
+            if (each_service.lv3_service_id == service_id) {
+                service = each_service.service_data
+            }
+        });
+    });
     var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
-    var get_service_data_url = properties.get('get_service_data_url');
-    var body_data = {
-        service_id: service_id
-    }
-    axios.post(get_service_data_url, body_data).then(({
-        data
-    }) => {
-        var service = data.service;
-        // log.info(service)
-        if (!jQuery.isEmptyObject(service)) {
-            let checked_files = [];
-            if (service.path_execution_flag) {
-                try {
-                    let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
-                    for (let i = 0; i < files_of_folder.length; i++) {
-                        if (files_test(service.check_folder_path + '/' + files_of_folder[i])) {
-                            checked_files.push(files_of_folder[i])
-                        }
-
+    if (!jQuery.isEmptyObject(service)) {
+        let checked_files = [];
+        if (service.path_execution_flag) {
+            try {
+                let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
+                for (let i = 0; i < files_of_folder.length; i++) {
+                    if (files_test(service.check_folder_path + '/' + files_of_folder[i])) {
+                        checked_files.push(files_of_folder[i])
                     }
-                } catch (error) {
-                    log.info("Folder is empty")
-                        // executionErrorLogo(4)
                 }
-                if (checked_files.length > 0) {
-                    var lock_flag = 0;
-                    checked_files.forEach(element => {
-                        var strArray = element.split(".");
-                        if (strArray.includes('lock')) {
-                            lock_flag = 1;
-                        }
-                    });
-                    if (lock_flag == 0) {
-                        if (service.job_execution_flag) {
-                            callback(1);
-                        } else {
-                            callback(0);
-                            log.info("Job execution off")
-                        }
+            } catch (error) {
+                log.info("Folder is empty")
+                    // executionErrorLogo(4)
+            }
+            if (checked_files.length > 0) {
+                var lock_flag = 0;
+                checked_files.forEach(element => {
+                    var strArray = element.split(".");
+                    if (strArray.includes('lock')) {
+                        lock_flag = 1;
+                    }
+                });
+                if (lock_flag == 0) {
+                    if (service.job_execution_flag) {
+                        callback(1);
                     } else {
                         callback(0);
-                        log.info("Multiple execution")
+                        log.info("Job execution off")
                     }
                 } else {
                     callback(0);
-                    log.info("Checked folder is empty");
+                    log.info("Multiple execution")
                 }
             } else {
-                log.info("Folder Path execution off");
                 callback(0);
+                log.info("Checked folder is empty");
             }
-
         } else {
-            log.error('Service ' + (service_row + 1) + ' Folder setup not completed yet');
+            log.info("Folder Path execution off");
+            callback(0);
         }
-    }).catch((e) => {
-        log.error('folderCheck [get_service_data_url]:' + get_service_data_url + ' exception:' + e);
 
-    });
+    } else {
+        log.error('Service ' + (service_row + 1) + ' Folder setup not completed yet');
+    }
 }
 
 function APICheck(service_id, callback) {
@@ -727,7 +723,7 @@ function file_save_from_url(file_name, file_url, file_move_path, callback) {
         .catch(() => log.info('File can not be downloaded!'));
 }
 
-function customerInfo(user_id = null) {
+function customerInfo(user_id = null, reload_flag = 0) {
     var get_customer_url = properties.get('get_customer_url');
     var body_data = {
         user_id: user_id
@@ -737,21 +733,52 @@ function customerInfo(user_id = null) {
         data
     }) => {
         var customers_data = data.customers_data;
-        global_customers = customers_data;
-        // log.info(global_customers)
-        var raw_html = '';
-        for (let i = 0; i < customers_data.length; i++) {
-            raw_html += '<tr class="cust_info_row" cmn_connect_id="' + customers_data[i].cmn_connect_id + '" adm_user_id="' + user_id + '" partner-code="' + customers_data[i].partner_code + '" company-name="' + customers_data[i].company_name + '">';
-            raw_html += '<td>' + (i + 1) + '</td>';
-            raw_html += '<td>' + customers_data[i].company_name + '</td>';
-            raw_html += '</tr>';
+        if (reload_flag == 1) {
+            global_customers = customers_data;
+        } else {
+            global_customers = customers_data;
+            var raw_html = '';
+            for (let i = 0; i < customers_data.length; i++) {
+                raw_html += '<tr class="cust_info_row" cmn_connect_id="' + customers_data[i].cmn_connect_id + '" adm_user_id="' + user_id + '" partner-code="' + customers_data[i].partner_code + '" company-name="' + customers_data[i].company_name + '">';
+                raw_html += '<td>' + (i + 1) + '</td>';
+                raw_html += '<td>' + customers_data[i].company_name + '</td>';
+                raw_html += '</tr>';
+                serviceNameShow(customers_data[i].cmn_connect_id)
+            }
+            $('#customer_info_table tbody').html(raw_html);
         }
-        $('#customer_info_table tbody').html(raw_html);
     }).catch((e) => {
         log.error('customerInfo [get_customer_url]:' + get_customer_url + ' exception:' + e);
         mailsend("[Level3]エラー", 'customerInfo [get_customer_url]:' + get_customer_url + ' exception:' + e);
         alert("接続用API設定を確認してください");
     })
+}
+
+function serviceNameShow(cmn_connect_id) {
+    var service_data = '';
+    global_customers.forEach(cust_element => {
+        if (cmn_connect_id == cust_element.cmn_connect_id) {
+            service_data = cust_element.service_info
+        }
+    });
+    var raw_html = '';
+    if (service_data.length) {
+        for (let i = 0; i < service_data.length; i++) {
+            raw_html += '<tr class="service_info_row" remove_val="0" service-id="' + service_data[i].lv3_service_id + '" service-name="' + service_data[i].service_name + '">';
+            raw_html += '<td>' + (i + 1) + '</td>';
+            raw_html += '<td id="service_edit_form">' + service_data[i].service_name + '</td>';
+            raw_html += '<td style="text-align:center;" id="service_execution"><i class="far fa-play-circle" style="font-size:30px;"></i></td>';
+            raw_html += '<td style="text-align:center;" id="service_configureation"><i class="fas fa-cog" style="font-size:30px;"></i></td>';
+            raw_html += '</tr>';
+
+        }
+    } else {
+        raw_html = '<tr remove_val="1"><td colspan="4">登録済みのサービスがありません</td></tr>';
+    }
+    $('#service_info_table tbody').html(raw_html);
+    if (service_data.length) {
+        rpa_schedule_show(service_data[0].lv3_service_id);
+    }
 }
 
 function requestUrl(api_url, body_data = null) {
@@ -865,32 +892,7 @@ function areRefresh(rownum = 0) {
     serviceNameShow(cmn_connect_id)
 }
 
-function serviceNameShow(cmn_connect_id) {
-    var service_data = '';
-    global_customers.forEach(cust_element => {
-        if (cmn_connect_id == cust_element.cmn_connect_id) {
-            service_data = cust_element.service_info
-        }
-    });
-    var raw_html = '';
-    if (service_data.length) {
-        for (let i = 0; i < service_data.length; i++) {
-            raw_html += '<tr class="service_info_row" remove_val="0" service-id="' + service_data[i].lv3_service_id + '" service-name="' + service_data[i].service_name + '">';
-            raw_html += '<td>' + (i + 1) + '</td>';
-            raw_html += '<td id="service_edit_form">' + service_data[i].service_name + '</td>';
-            raw_html += '<td style="text-align:center;" id="service_execution"><i class="far fa-play-circle" style="font-size:30px;"></i></td>';
-            raw_html += '<td style="text-align:center;" id="service_configureation"><i class="fas fa-cog" style="font-size:30px;"></i></td>';
-            raw_html += '</tr>';
 
-        }
-    } else {
-        raw_html = '<tr remove_val="1"><td colspan="4">登録済みのサービスがありません</td></tr>';
-    }
-    $('#service_info_table tbody').html(raw_html);
-    if (service_data.length) {
-        rpa_schedule_show(service_data[0].lv3_service_id);
-    }
-}
 
 function scheduleMessageClassRemove(addClass, message, removeClass) {
     $('#rpa_schedule_message').removeClass(removeClass);

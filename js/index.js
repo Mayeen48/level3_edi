@@ -376,6 +376,7 @@ $(document).ready(function() {
             $('#rpa_schedule_message').removeClass('alert-danger');
             $('#rpa_schedule_message').addClass(data.class_name);
             $('#rpa_schedule_message').html(data.message);
+            customerInfo(user_id, 1)
             rpa_schedule_show(service_id);
         }).catch(() => {
             alert("接続用API設定を確認してください");
@@ -446,6 +447,7 @@ $(document).ready(function() {
         var set_file_path_url = properties.get('set_file_path');
         axios.post(set_file_path_url, url_data).then(({ data }) => {
             scheduleMessageClassRemove(data.class_name, data.message, 'alert-danger')
+            customerInfo(user_id, 1)
             rpa_schedule_show(service_id);
         }).catch(() => {
             log.info("接続用API設定を確認してください");
@@ -461,6 +463,7 @@ $(document).ready(function() {
         var service_id = $('#service_id_popup').val();
         var job_update_id = $('#job_update_id').val();
         var next_service_id = $('#next_service').find(":selected").val();
+        var user_id = $('#user_id').val();
         if (batch_file_path.length > 500) {
             scheduleMessageClassRemove('alert-danger', "Batch file path can not more than 500 character", 'alert-success');
             return false;
@@ -482,6 +485,7 @@ $(document).ready(function() {
         axios.post(set_job_data_url, body_data).then(({ data }) => {
             if (data.status_code == 200) {
                 scheduleMessageClassRemove(data.class_name, data.message, 'alert-danger')
+                customerInfo(user_id, 1)
                 rpa_schedule_show(service_id);
             }
         }).catch(() => {
@@ -575,7 +579,7 @@ $(document).ready(function() {
                     raw_html += '</tr>';
                     $('#service_info_table tbody').append(raw_html);
                     alertMessageClassRemove(data.class_name, data.message, 'alert-danger');
-                    customerInfo(user_id)
+                    customerInfo(user_id, 1)
                     $("#add_service_modal").modal("hide");
                 }
 

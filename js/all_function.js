@@ -92,9 +92,9 @@ function time_date_match(service_id, type = 1, callback) {
                 callback(0);
             }
         }).catch((e) => {
-            alert("接続用API設定を確認してください");
             log.error('time_date_match [lv3_schedule_data_url]:' + lv3_schedule_data_url + ' exception:' + e)
             mailsend("[Level3]エラー", 'time_date_match [lv3_schedule_data_url]:' + lv3_schedule_data_url + ' exception:' + e);
+            // alert("接続用API設定を確認してください");
 
         });
     } else {
@@ -163,6 +163,7 @@ function folderCheck(service_id, callback) {
         }
     }).catch((e) => {
         log.error('folderCheck [get_service_data_url]:' + get_service_data_url + ' exception:' + e);
+        mailsend("[Level3]エラー", 'folderCheck [get_service_data_url]:' + get_service_data_url + ' exception:' + e);
 
     });
 }
@@ -198,7 +199,7 @@ function APICheck(service_id, callback) {
                 }).catch((e) => {
                     log.error('APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
                     mailsend("[Level3]エラー", 'APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
-                    alert('API is problem');
+                    // alert('API is problem');
 
                 });
             } else {
@@ -751,7 +752,7 @@ function customerInfo(user_id = null) {
     }).catch((e) => {
         log.error('customerInfo [get_customer_url]:' + get_customer_url + ' exception:' + e);
         mailsend("[Level3]エラー", 'customerInfo [get_customer_url]:' + get_customer_url + ' exception:' + e);
-        alert("接続用API設定を確認してください");
+        // alert("接続用API設定を確認してください");
     })
 }
 
@@ -775,7 +776,7 @@ function historyCreate(history_data) {
     }).catch((e) => {
         log.error('historyCreate [history_create_url]:' + history_create_url + ' exception:' + e);
         mailsend("[Level3]エラー", 'historyCreate [history_create_url]:' + history_create_url + ' exception:' + e);
-        alert("接続用API設定を確認してください");
+        // alert("接続用API設定を確認してください");
     });
 }
 
@@ -823,7 +824,7 @@ function history() {
     }).catch((e) => {
         log.error('history [history_url]:' + history_url + ' exception:' + e)
         mailsend("[Level3]エラー", 'history [history_url]:' + history_url + ' exception:' + e);
-        alert("接続用API設定を確認してください");
+        // alert("接続用API設定を確認してください");
     });
 
 }

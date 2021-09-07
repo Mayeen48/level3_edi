@@ -535,6 +535,7 @@ $(document).ready(function() {
         $("#add_service_modal").modal("show");
     });
 
+    // 新規サービス追加
     $(document).on('click', '#new_service_create', function() {
 
         var service_id = $("#service_update_id").val();
@@ -549,7 +550,7 @@ $(document).ready(function() {
         }
         if (service_name_len > 50) {
             $('#add_service_message').addClass('alert-danger');
-            $('#add_service_message').html('Service name must be less than 50 character');
+            $('#add_service_message').html('50文字以内で入力してください。');
             return 0;
         }
         var add_service_url = properties.get('add_service_url');

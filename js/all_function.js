@@ -31,7 +31,7 @@ async function trigger(service_id = null, service_traking_number = 0) {
     while (i < service_id_array.length) {
         service_id = service_id_array[i];
 
-        log.debug("service_id:" + service_id);
+        // log.debug("service_id:" + service_id);
 
         service_traking_number = traking_number_array[i];
         await single_service_exec(service_id, service_traking_number)
@@ -50,8 +50,7 @@ function single_service_exec(service_id, service_traking_number) {
                         // log.info("folderCheck " + folder_data);
                         if (job_execute_flg == 0) {
                             APICheck(service_id, function (job_execute_flg, data) {
-                                if (job_execute_flg == 0) {
-                                } else {
+                                if (job_execute_flg == 0) {} else {
                                     jobExec(service_id, service_traking_number, data)
                                 }
                             })
@@ -102,116 +101,143 @@ function time_date_match(service_id, type = 1, callback) {
     }
 }
 
+// service data 取得
+function getServiceData(service_id) {
+
+    for (let cust of global_customers) {
+        let services = cust.service_info;
+        for (let service of services) {
+            if (service.lv3_service_id == service_id) {
+                return service;
+            }
+        }
+    }
+    log.error("Can not get service data! service_id" + service_id);
+
+    return null;
+}
+
 
 function folderCheck(service_id, callback) {
-    // log.info("In check Folder " + service_id);
-    // =====================
-    var service = [];
-    var service_name = "";
-    global_customers.forEach(each_customer => {
-        services = each_customer.service_info
-        services.forEach(each_service => {
-            if (each_service.lv3_service_id == service_id) {
-                service_name = each_service.service_name;
-                log.debug(each_service);
-                if (typeof (each_service.service_data) == "undefined") {
-                    log.info("not set service_data service_id:" + service_id);
-                }
-                service = each_service.service_data
-            }
-        });
-    });
 
-    var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
-    if (service.path_execution_flag) {
+    // service data
+    let service = getServiceData(service_id);
+    if (!service) {
+        return false;
+    }
+    let service_name = service.service_name;
+    let service_data = service.service_data;
+    let log_h = "[" + service_name + "][" + service_id + "]:";
+
+    if (service_data.path_execution_flag) {
         let checked_files = [];
-        if (!jQuery.isEmptyObject(service)) {
-            try {
-                let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
-                for (let i = 0; i < files_of_folder.length; i++) {
-                    if (files_test(service.check_folder_path + '/' + files_of_folder[i])) {
-                        checked_files.push(files_of_folder[i])
-                    }
+        try {
+            let files_of_folder = fs.readdirSync(service_data.check_folder_path + "/");
+            for (let file of files_of_folder) {
+                if (files_test(service_data.check_folder_path + '/' + file)) {
+                    checked_files.push(file)
                 }
-            } catch (error) {
-                log.info("Folder is empty")
-                // executionErrorLogo(4)
             }
-            if (checked_files.length > 0) {
-                var lock_flag = 0;
-                checked_files.forEach(element => {
-                    var strArray = element.split(".");
-                    if (strArray.includes('lock')) {
-                        lock_flag = 1;
-                    }
-                });
-                if (lock_flag == 0) {
-                    if (service.job_execution_flag) {
-                        // execute job
-                        return callback(1);
-                    } else {
-                        log.info("Job execution off")
-                    }
-                } else {
-                    log.info("Multiple execution")
+        } catch (error) {
+            log.error(log_h + "Folder check exception:" + error);
+            mailsend("[Level3]エラー", log_h + "Folder check exception:" + error);
+        }
+        if (checked_files.length > 0) {
+            log.info(log_h + );
+            var lock_flag = 0;
+            checked_files.forEach(element => {
+                var strArray = element.split(".");
+                if (strArray.includes('lock')) {
+                    lock_flag = 1;
                 }
+            });
+            if (lock_flag == 0) {
+                // job execute
+                return callback(1);
             } else {
-                log.info("Checked folder is empty");
+                log.info(log_h + "Multiple execution")
             }
         } else {
-            log.info('service_name:[' + service_name + '] Folder setup not completed yet');
+            log.info(log_h + "Checked folder is empty:" + service_data.check_folder_path);
         }
     } else {
-        log.debug("Folder Path execution flag off");
+        log.debug(log_h + "Folder Path execution flag off");
     }
 
     return callback(0);
 }
 
 function APICheck(service_id, callback) {
-    var service_row = $('#service_info_table tbody tr[service-id="' + service_id + '"]').index();
-    var get_service_data_url = properties.get('get_service_data_url');
-    var body_data = { service_id: service_id }
-    axios.post(get_service_data_url, body_data).then(({ data }) => {
-        var service = data.service;
-        if (service.api_execution_flag) {
-            if (fs.existsSync(service.api_folder_path)) {
-                if (service.api_url) {
-                    axios.post(service.api_url, { email: email, password: password }).then(({ data }) => {
-                        var file_name = data.file_name
-                        var file_path = data.file_path
-                        if (data.status_code == 200) {
-                            var job_execute_flg = true;
-                            if (file_name || file_path) {
-                                file_save_from_url(file_name, file_path, service.api_folder_path, function (download_status) {
-                                    job_execute_flg = download_status;
-                                    log.info("File save from API:" + file_path)
-                                    callback(job_execute_flg, data)
-                                })
-                            } else {
-                                log.error('APICheck Can not save download file');
-                                mailsend("[Level3]エラー", 'APICheck Can not save download file');
-                            }
+
+    // service data
+    let service = getServiceData(service_id);
+    if (!service) {
+        return false;
+    }
+    let service_name = service.service_name;
+    let service_data = service.service_data;
+    let log_h = "[" + service_name + "][" + service_id + "]:";
+
+
+    if (service_data.api_execution_flag) {
+        if (fs.existsSync(service_data.api_folder_path)) {
+            if (service_data.api_url) {
+                axios.post(service_data.api_url, {
+                    email: email,
+                    password: password
+                }).then(({
+                    data
+                }) => {
+                    var file_name = data.file_name
+                    var file_path = data.file_path
+                    if (data.status_code == 200) {
+                        var job_execute_flg = true;
+                        if (file_name || file_path) {
+                            file_save_from_url(file_name, file_path, service_data.api_folder_path, function (download_status) {
+                                job_execute_flg = download_status;
+                                log.info(log_h + "File save from API:" + file_path)
+                                callback(job_execute_flg, data)
+                            })
                         } else {
-                            log.debug("API has no file")
+                            log.error(log_h + 'APICheck Can not save download file');
+                            mailsend("[Level3]エラー", 'APICheck Can not save download file');
                         }
-                    }).catch((e) => {
-                        log.error('APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
-                        mailsend("[Level3]エラー", 'APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
-                    });
-                } else {
-                    log.info('API Trigger not set')
-                }
+                    } else {
+                        log.debug("API has no file")
+                    }
+                }).catch((e) => {
+                    log.error(log_h + 'APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
+                    mailsend("[Level3]エラー", 'APICheck [service.api_url]:' + service.api_url + ' exception:' + e);
+                });
             } else {
-                log.error('API Folder Path Directory not found.');
+                log.info(log_h + 'API Trigger not set')
             }
         } else {
-            log.debug('API Execution flag off')
+            log.error(log_h + 'API Folder Path Directory not found.');
         }
-    })
+    } else {
+        log.debug(log_h + 'API Execution flag off')
+    }
 }
 
 async function jobExec(service_id, service_traking_number = null, response_data = []) {
+
+    // service data
+    let service = getServiceData(service_id);
+    if (!service) {
+        return false;
+    }
+    let service_name = service.service_name;
+    let service_data = service.service_data;
+    let log_h = "[" + service_name + "][" + service_id + "]:";
+
+    // job execute flg check
+    if (!service_data.job_execution_flag) {
+        log.info(log_h + "Job execution off")
+        return false;
+    }
+
+
     log.info('jobExec start');
     executionStartLogo(service_id)
     // log.info('My' + file_name);
@@ -335,7 +361,9 @@ async function jobExec(service_id, service_traking_number = null, response_data 
                         }
                     }
                     // log.debug(checked_files)
-                    axios.post(job_scenario_api, formData).then(({ data }) => {
+                    axios.post(job_scenario_api, formData).then(({
+                        data
+                    }) => {
                         log.debug(data)
                         if (data.status == 1) {
                             if (checked_files.length > 0) {

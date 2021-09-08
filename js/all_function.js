@@ -40,16 +40,16 @@ async function trigger(service_id = null, service_traking_number = 0) {
 }
 
 function single_service_exec(service_id, service_traking_number) {
-    time_date_match(service_id, 1, function (job_execute_flg) {
+    time_date_match(service_id, 1, function(job_execute_flg) {
         // log.info(time_data);
         if (job_execute_flg == 0) {
-            time_date_match(service_id, 2, function (job_execute_flg) {
+            time_date_match(service_id, 2, function(job_execute_flg) {
                 // log.info(date_data);
                 if (job_execute_flg == 0) {
-                    folderCheck(service_id, function (job_execute_flg) {
+                    folderCheck(service_id, function(job_execute_flg) {
                         // log.info("folderCheck " + folder_data);
                         if (job_execute_flg == 0) {
-                            APICheck(service_id, function (job_execute_flg, data) {
+                            APICheck(service_id, function(job_execute_flg, data) {
                                 if (job_execute_flg == 0) {} else {
                                     jobExec(service_id, service_traking_number, data)
                                 }
@@ -91,9 +91,9 @@ function time_date_match(service_id, type = 1, callback) {
                 callback(0);
             }
         }).catch((e) => {
-            alert("接続用API設定を確認してください");
             log.error('time_date_match [lv3_schedule_data_url]:' + lv3_schedule_data_url + ' exception:' + e)
             mailsend("[Level3]エラー", 'time_date_match [lv3_schedule_data_url]:' + lv3_schedule_data_url + ' exception:' + e);
+            // alert("接続用API設定を確認してください");
 
         });
     } else {
@@ -143,7 +143,7 @@ function folderCheck(service_id, callback) {
             mailsend("[Level3]エラー", log_h + "Folder check exception:" + error);
         }
         if (checked_files.length > 0) {
-            log.info(log_h + );
+            // log.info(log_h + );
             var lock_flag = 0;
             checked_files.forEach(element => {
                 var strArray = element.split(".");
@@ -193,7 +193,7 @@ function APICheck(service_id, callback) {
                     if (data.status_code == 200) {
                         var job_execute_flg = true;
                         if (file_name || file_path) {
-                            file_save_from_url(file_name, file_path, service_data.api_folder_path, function (download_status) {
+                            file_save_from_url(file_name, file_path, service_data.api_folder_path, function(download_status) {
                                 job_execute_flg = download_status;
                                 log.info(log_h + "File save from API:" + file_path)
                                 callback(job_execute_flg, data)
@@ -240,7 +240,7 @@ async function jobExec(service_id, service_traking_number = null, response_data 
 
     log.info('jobExec start');
     executionStartLogo(service_id)
-    // log.info('My' + file_name);
+        // log.info('My' + file_name);
     var order_history_data;
     var user_id = $('#user_id').val();
     var get_service_data_url = properties.get('get_service_data_url');
@@ -272,7 +272,7 @@ async function jobExec(service_id, service_traking_number = null, response_data 
                     }
                     log.info('batch_file_path_with_arg');
                     log.info(batch_file_path_with_arg)
-                    // return 0;
+                        // return 0;
                     const myShellScript = exec(batch_file_path_with_arg);
                     log.info(myShellScript);
                     myShellScript.stdout.on('data', (data) => {
@@ -349,7 +349,7 @@ async function jobExec(service_id, service_traking_number = null, response_data 
                         if (array_value == "LV3_FILE_DATA") {
                             if (checked_files.length > 0) {
                                 let file_url_full = service.check_folder_path + '/' + checked_files[0];
-                                fs.writeFile(service.check_folder_path + '/' + checked_files[0] + '.lock', 'demo', function (err) {
+                                fs.writeFile(service.check_folder_path + '/' + checked_files[0] + '.lock', 'demo', function(err) {
                                     if (err) throw log.debug(err);
                                     log.debug('File is created successfully.');
                                 });
@@ -445,7 +445,7 @@ function executionEndLogo(service_id) {
 }
 
 function executionNormal() {
-    $("#service_info_table > tbody > tr").each(function () {
+    $("#service_info_table > tbody > tr").each(function() {
         $(this).find('td:eq(2)').html('<i class="far fa-play-circle" style="font-size:30px;"></i>');
     });
 }
@@ -735,7 +735,7 @@ function file_save_from_url(file_name, file_url, file_move_path, callback) {
         .then(resp => resp.blob())
         .then(blob => {
             var reader = new FileReader()
-            reader.onload = function () {
+            reader.onload = function() {
                 var buffer = new Buffer(reader.result)
                 fs.writeFile(file_move_path + "/" + file_name, buffer, {}, (err, res) => {
                     if (err) {
@@ -783,7 +783,7 @@ function customerInfo(user_id = null, reload_flag = 0) {
     }).catch((e) => {
         log.error('customerInfo [get_customer_url]:' + get_customer_url + ' exception:' + e);
         mailsend("[Level3]エラー", 'customerInfo [get_customer_url]:' + get_customer_url + ' exception:' + e);
-        alert("接続用API設定を確認してください");
+        // alert("接続用API設定を確認してください");
     })
 }
 
@@ -834,7 +834,7 @@ function historyCreate(history_data) {
     }).catch((e) => {
         log.error('historyCreate [history_create_url]:' + history_create_url + ' exception:' + e);
         mailsend("[Level3]エラー", 'historyCreate [history_create_url]:' + history_create_url + ' exception:' + e);
-        alert("接続用API設定を確認してください");
+        // alert("接続用API設定を確認してください");
     });
 }
 
@@ -882,7 +882,7 @@ function history() {
     }).catch((e) => {
         log.error('history [history_url]:' + history_url + ' exception:' + e)
         mailsend("[Level3]エラー", 'history [history_url]:' + history_url + ' exception:' + e);
-        alert("接続用API設定を確認してください");
+        // alert("接続用API設定を確認してください");
     });
 
 }
@@ -947,7 +947,7 @@ function downloadPDF(file_name, file_path_url) {
     oReq.responseType = "blob";
     // When the file request finishes
     // Is up to you, the configuration for error events etc.
-    oReq.onload = function () {
+    oReq.onload = function() {
         // Once the file is downloaded, open a new window with the PDF
         // Remember to allow the POP-UPS in your browser
         var file = new Blob([oReq.response], {

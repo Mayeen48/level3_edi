@@ -40,22 +40,22 @@ async function trigger(service_id = null, service_traking_number = 0) {
 }
 
 function single_service_exec(service_id, service_traking_number) {
-    time_date_match(service_id, 1, function(job_execute_flg) {
+    time_date_match(service_id, 1, function (job_execute_flg) {
         // log.info(time_data);
         if (job_execute_flg == 0) {
-            time_date_match(service_id, 2, function(job_execute_flg) {
+            time_date_match(service_id, 2, function (job_execute_flg) {
                 // log.info(date_data);
                 if (job_execute_flg == 0) {
-                    folderCheck(service_id, function(job_execute_flg) {
+                    folderCheck(service_id, function (job_execute_flg, data) {
                         // log.info("folderCheck " + folder_data);
                         if (job_execute_flg == 0) {
-                            APICheck(service_id, function(job_execute_flg, data) {
-                                if (job_execute_flg == 0) {} else {
+                            APICheck(service_id, function (job_execute_flg, data) {
+                                if (job_execute_flg == 0) { } else {
                                     jobExec(service_id, service_traking_number, data)
                                 }
                             })
                         } else {
-                            jobExec(service_id, service_traking_number)
+                            jobExec(service_id, service_traking_number, data)
                         }
                     })
                 } else {
@@ -129,41 +129,73 @@ function folderCheck(service_id, callback) {
     let service_data = service.service_data;
     let log_h = "[" + service_name + "][" + service_id + "]:";
 
-    if (service_data.path_execution_flag) {
-        let checked_files = [];
-        try {
-            let files_of_folder = fs.readdirSync(service_data.check_folder_path + "/");
-            for (let file of files_of_folder) {
-                if (files_test(service_data.check_folder_path + '/' + file)) {
-                    checked_files.push(file)
-                }
-            }
-        } catch (error) {
-            log.error(log_h + "Folder check exception:" + error);
-            mailsend("[Level3]エラー", log_h + "Folder check exception:" + error);
-        }
-        if (checked_files.length > 0) {
-            // log.info(log_h + );
-            var lock_flag = 0;
-            checked_files.forEach(element => {
-                var strArray = element.split(".");
-                if (strArray.includes('lock')) {
-                    lock_flag = 1;
-                }
-            });
-            if (lock_flag == 0) {
-                // job execute
-                return callback(1);
-            } else {
-                log.info(log_h + "Multiple execution")
-            }
-        } else {
-            log.info(log_h + "Checked folder is empty:" + service_data.check_folder_path);
-        }
-    } else {
+    // path_execution_flag
+    if (!service_data.path_execution_flag) {
         log.debug(log_h + "Folder Path execution flag off");
+        // APIcheck
+        return callback(0);
     }
 
+    // folder exists
+    if ((!service_data.check_folder_path) || (!service_data.moved_folder_path)) {
+        log.error(log_h + "Folder Path is empty");
+        alert(log_h + "指定フォルダパスが空欄です。");
+        return false;
+    }
+    // check folder
+    if (!fs.existsSync(service_data.check_folder_path)) {
+        log.error(log_h + "Folder Path is not exist:" + service_data.check_folder_path);
+        alert(log_h + "指定フォルダパスが見つかりません。");
+        return false;
+    }
+    // move folder
+    if (!fs.existsSync(service_data.moved_folder_path)) {
+        log.error(log_h + "Folder Path is not exist:" + service_data.moved_folder_path);
+        alert(log_h + "指定フォルダパスが見つかりません。");
+        return false;
+    }
+
+    try {
+        // フォルダ内チェック
+        let files_of_folder = fs.readdirSync(service_data.check_folder_path + "/");
+        for (let file of files_of_folder) {
+            let fp = service_data.check_folder_path + '/' + file
+            // ファイルのみチェック
+            if (files_test(fp)) {
+
+                log.info(log_h + "folder check file:" + fp);
+
+                if (file.split(".").includes('lock')) {
+                    log.debug("this is lock file:" + file);
+                    continue;
+                }
+
+                // lock ファイル作成
+                let lock_file = fp + '.lock';
+
+                if (fs.existsSync(lock_file)) {
+                    log.debug("already locked:" + file);
+                    continue;
+                }
+
+                fs.writeFileSync(lock_file, '');
+                log.debug('created lock file:' + lock_file);
+
+                // job execute
+                return callback(1, { LV3_FILE_DATA: file });
+
+            }
+        }
+
+    } catch (e) {
+        log.error(log_h + "Folder check exception:" + e);
+        mailsend("[Level3]エラー", log_h + "Folder check exception:" + e);
+    }
+
+    // フォルダ空
+    log.info(log_h + "Checked folder is empty:" + service_data.check_folder_path);
+
+    // APICheck
     return callback(0);
 }
 
@@ -193,7 +225,7 @@ function APICheck(service_id, callback) {
                     if (data.status_code == 200) {
                         var job_execute_flg = true;
                         if (file_name || file_path) {
-                            file_save_from_url(file_name, file_path, service_data.api_folder_path, function(download_status) {
+                            file_save_from_url(file_name, file_path, service_data.api_folder_path, function (download_status) {
                                 job_execute_flg = download_status;
                                 log.info(log_h + "File save from API:" + file_path)
                                 callback(job_execute_flg, data)
@@ -231,202 +263,189 @@ async function jobExec(service_id, service_traking_number = null, response_data 
     let service_data = service.service_data;
     let log_h = "[" + service_name + "][" + service_id + "]:";
 
+    log.debug(service);
+    // log.debug(response_data);
+
     // job execute flg check
     if (!service_data.job_execution_flag) {
         log.info(log_h + "Job execution off")
         return false;
     }
 
-
     log.info('jobExec start');
     executionStartLogo(service_id)
-        // log.info('My' + file_name);
+    // log.info('My' + file_name);
     var order_history_data;
     var user_id = $('#user_id').val();
-    var get_service_data_url = properties.get('get_service_data_url');
-    var body_data = {
-        service_id: service_id
-    }
-    axios.post(get_service_data_url, body_data).then(({
-        data
-    }) => {
-        var service = data.service;
-        if (service) {
-            if (service.execution == 'batch') {
-                if (service.batch_file_path != null) {
-                    // =====my new code =====
-                    const exec = require('child_process').exec;
-                    var batch_file_path_with_arg = '';
-                    if (response_data.hasOwnProperty("file_name")) {
-                        let file_path = service.api_folder_path + '/' + response_data.file_name
-                        batch_file_path_with_arg = (service.batch_file_path).replace('LV3_FILE_PATH', file_path)
-                    }
-                    if (response_data.hasOwnProperty("super_code")) {
-                        batch_file_path_with_arg.replace('DATA-super_code', response_data.super_code)
-                    }
-                    if (response_data.hasOwnProperty("partner_code")) {
-                        batch_file_path_with_arg.replace('DATA-partner_code', response_data.partner_code)
-                    }
-                    if (response_data.hasOwnProperty("work")) {
-                        batch_file_path_with_arg.replace('DATA-work', response_data.work)
-                    }
-                    log.info('batch_file_path_with_arg');
-                    log.info(batch_file_path_with_arg)
-                        // return 0;
-                    const myShellScript = exec(batch_file_path_with_arg);
-                    log.info(myShellScript);
-                    myShellScript.stdout.on('data', (data) => {
-                        // log.info(data);
-                        // log.info("Job executed");
-                        // do whatever you want here with data
-                        order_history_data = {
-                            process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                            user_id: user_id,
-                            service_id: (service.lv3_service_id),
-                            status: 'Success',
-                            history_message: "Job Executed Successfully"
-                        }
-                        historyCreate(order_history_data);
-                        executionEndLogo(service_id);
-                        if (service.next_service_id) {
-                            var next_service_row = $('#service_info_table tbody tr[service-id="' + service.next_service_id + '"]').index();
-                            trigger((service.next_service_id), next_service_row);
-                        }
-                    });
-                    myShellScript.stderr.on('close', (data) => {
-                        if (data == "0") {
-                            status = 'Success';
-                            message = '正常終了';
-                        } else {
-                            status = 'Error';
-                            message = 'Job 実行エラー';
-                        }
-                        order_history_data = {
-                            process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                            user_id: user_id,
-                            service_id: (service.lv3_service_id),
-                            status: status,
-                            history_message: message
-                        }
-                        historyCreate(order_history_data);
-                        executionEndLogo(service_id);
-                        return 0;
-                    });
-                    // =====my new code =====
-                } else {
-                    log.info('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
-                    executionErrorLogo(service_id);
-                }
-            } else if (service.execution == 'scenario') {
-                var checked_files = [];
-                try {
-                    let files_of_folder = fs.readdirSync(service.check_folder_path + "/");
-                    for (let j = 0; j < files_of_folder.length; j++) {
-                        if (files_test(service.check_folder_path + '/' + files_of_folder[j])) {
-                            checked_files.push(files_of_folder[j])
-                        }
-                    }
-                } catch (error) {
-                    log.info("Folder is empty");
-                    // executionErrorLogo(4)
-                }
 
-                // log.info(checked_files)
-                // return 0;
-                var job_scenario_api = properties.get('job_scenario_api');
-                var scenario_array = JSON.parse(properties.get('scenario_array'))[service.cmn_scenario_id];
-                // log.info(service.cmn_scenario_id);
-                log.info(scenario_array);
-                if (scenario_array) {
-                    var scenario_array_length = Object.keys(scenario_array).length;
-                    var formData = new FormData();
-                    formData.append('scenario_id', service.cmn_scenario_id);
-                    formData.append('email', email);
-                    formData.append('password', password);
-                    for (let i = 0; i < scenario_array_length; i++) {
-                        const array_key = Object.keys(scenario_array)[i];
-                        const array_value = Object.values(scenario_array)[i];
-                        if (array_value == "LV3_FILE_DATA") {
-                            if (checked_files.length > 0) {
-                                let file_url_full = service.check_folder_path + '/' + checked_files[0];
-                                fs.writeFile(service.check_folder_path + '/' + checked_files[0] + '.lock', 'demo', function(err) {
-                                    if (err) throw log.debug(err);
-                                    log.debug('File is created successfully.');
-                                });
-                                formData.append(array_key, new Blob([fs.readFileSync(file_url_full)]), checked_files[0]);
-                            }
-
-                        } else {
-                            formData.append(array_key, array_value);
-                        }
-                    }
-                    // log.debug(checked_files)
-                    axios.post(job_scenario_api, formData).then(({
-                        data
-                    }) => {
-                        log.debug(data)
-                        if (data.status == 1) {
-                            if (checked_files.length > 0) {
-                                if (service.moved_folder_path) {
-                                    moveFile(service.check_folder_path, service.moved_folder_path, checked_files[0])
-                                    order_history_data = {
-                                        process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                                        user_id: user_id,
-                                        service_id: (service.lv3_service_id),
-                                        status: 'Success',
-                                        execute_name: 'Shipment',
-                                        history_message: "File Moved"
-                                    }
-                                    log.info("File moved");
-
-                                    historyCreate(order_history_data);
-                                } else {
-                                    log.info("Can not move file");
-                                    order_history_data = {
-                                        process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                                        user_id: user_id,
-                                        service_id: (service.lv3_service_id),
-                                        status: 'Failed',
-                                        execute_name: 'Shipment',
-                                        history_message: "File saved but not moved"
-                                    }
-                                    historyCreate(order_history_data);
-                                }
-                                try {
-                                    fs.unlinkSync(service.check_folder_path + '/' + checked_files[0] + '.lock');
-                                } catch (error) {
-                                    log.info("Can not remove .lock file");
-                                    order_history_data = {
-                                        process_type: service_traking_number == null ? 'Auto' : 'Manual',
-                                        user_id: user_id,
-                                        service_id: (service.lv3_service_id),
-                                        status: 'Failed',
-                                        execute_name: 'Shipment',
-                                        history_message: "File saved and moved but could not remove .lock file"
-                                    }
-                                    historyCreate(order_history_data);
-                                }
-                            } else {
-                                log.info("No file found");
-                            }
-                        } else {
-                            log.info("Please check your file");
-                        }
-                        executionEndLogo(service_id);
-                    });
-                    // }, 3000);
-
-                } else {
-                    log.info('Scenario ' + service.cmn_scenario_id + ' Not found in properties file');
-                    executionErrorLogo(service_id);
-                }
+    if (service_data.execution == 'batch') {
+        log.debug(log_h + "job batch start");
+        if (service_data.batch_file_path != null) {
+            // =====my new code =====
+            const exec = require('child_process').exec;
+            var batch_file_path_with_arg = '';
+            if (response_data.hasOwnProperty("file_name")) {
+                let file_path = service_data.api_folder_path + '/' + response_data.file_name
+                batch_file_path_with_arg = (service_data.batch_file_path).replace('LV3_FILE_PATH', file_path)
             }
-
+            if (response_data.hasOwnProperty("super_code")) {
+                batch_file_path_with_arg.replace('DATA-super_code', response_data.super_code)
+            }
+            if (response_data.hasOwnProperty("partner_code")) {
+                batch_file_path_with_arg.replace('DATA-partner_code', response_data.partner_code)
+            }
+            if (response_data.hasOwnProperty("work")) {
+                batch_file_path_with_arg.replace('DATA-work', response_data.work)
+            }
+            log.info('batch_file_path_with_arg');
+            log.info(batch_file_path_with_arg)
+            // return 0;
+            const myShellScript = exec(batch_file_path_with_arg);
+            log.info(myShellScript);
+            myShellScript.stdout.on('data', (data) => {
+                // log.info(data);
+                // log.info("Job executed");
+                // do whatever you want here with data
+                order_history_data = {
+                    process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                    user_id: user_id,
+                    service_id: (service_data.lv3_service_id),
+                    status: 'Success',
+                    history_message: "Job Executed Successfully"
+                }
+                historyCreate(order_history_data);
+                executionEndLogo(service_id);
+                if (service_data.next_service_id) {
+                    var next_service_row = $('#service_info_table tbody tr[service-id="' + service_data.next_service_id + '"]').index();
+                    trigger((service_data.next_service_id), next_service_row);
+                }
+            });
+            myShellScript.stderr.on('close', (data) => {
+                if (data == "0") {
+                    status = 'Success';
+                    message = '正常終了';
+                } else {
+                    status = 'Error';
+                    message = 'Job 実行エラー';
+                }
+                order_history_data = {
+                    process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                    user_id: user_id,
+                    service_id: (service.lv3_service_id),
+                    status: status,
+                    history_message: message
+                }
+                historyCreate(order_history_data);
+                executionEndLogo(service_id);
+                return 0;
+            });
+            // =====my new code =====
         } else {
             log.info('Service ' + (service_traking_number + 1) + ' Job setup not completed yet');
             executionErrorLogo(service_id);
         }
-    })
+    } else if (service_data.execution == 'scenario') {
+        log.debug(log_h + "job batch scenario");
+
+        var job_scenario_api = properties.get('job_scenario_api');
+
+        // scenario
+        var scenario_array = JSON.parse(properties.get('scenario_array'))[service_data.cmn_scenario_id];
+        // log.info(service.cmn_scenario_id);
+        log.debug(scenario_array);
+        if (!scenario_array) {
+            log.error(log_h + 'Scenario ' + service.cmn_scenario_id + ' Not found in properties file');
+            executionErrorLogo(service_id);
+            return false;
+        }
+
+        var formData = new FormData();
+        formData.append('scenario_id', service_data.cmn_scenario_id);
+        formData.append('email', email);
+        formData.append('password', password);
+        for (let key in scenario_array) {
+
+            let value = scenario_array[key];
+            if (value == "LV3_FILE_DATA") {
+                // 
+                let fp = service_data.check_folder_path + '/' + response_data.LV3_FILE_DATA
+                log.debug("load file:" + fp);
+                formData.append(key, new Blob([fs.readFileSync(fp)]), response_data.LV3_FILE_DATA);
+
+            } else {
+                formData.append(key, value);
+            }
+        }
+
+
+        // log.debug(checked_files)
+        axios.post(job_scenario_api, formData).then(({
+            data
+        }) => {
+            log.debug(data)
+            if (data.status == 1) {
+
+                let status_cd = 'Success';
+                let history_message = "job execute success"
+
+                let data_type = "";
+                if (data.data.data_type) data_type = data.data.data_type;
+
+                order_history_data = {
+                    process_type: service_traking_number == null ? 'Auto' : 'Manual',
+                    user_id: user_id,
+                    service_id: (service.lv3_service_id),
+                    status: status_cd,
+                    history_message: history_message,
+                    data_type: data_type,
+                }
+
+                if (response_data.LV3_FILE_DATA) {
+                    // ファイル移動
+                    let fp = service_data.check_folder_path + '/' + response_data.LV3_FILE_DATA
+                    let ret = moveFile(service_data.check_folder_path, service_data.moved_folder_path, response_data.LV3_FILE_DATA)
+
+                    if (!ret) {
+                        alert(log_h + "ファイル移動に失敗しました。:" + fp);
+                        order_history_data.status = 'Failed';
+                        order_history_data.history_message = "File saved but not moved"
+                        historyCreate(order_history_data);
+                        executionErrorLogo(service_id);
+                        return false;
+                    }
+
+                    try {
+                        // lock ファイル削除
+                        fs.unlinkSync(fp + '.lock');
+                    } catch (error) {
+                        log.error(log_h + "Can not remove .lock file:" + fp + '.lock');
+                        alert(log_h + "ロックファイル削除に失敗しました。:" + fp + '.lock');
+
+                        order_history_data.status = 'Failed';
+                        order_history_data.history_message = "File saved and moved but could not remove .lock file";
+                        historyCreate(order_history_data);
+                        executionErrorLogo(service_id);
+                        return false;
+                    }
+
+                }
+
+                historyCreate(order_history_data);
+
+            } else {
+                log.error(log_h + "scenario error:" + data.message);
+                mailsend("[Level3]エラー", 'jobExec [scenario]:' + data.message);
+
+                order_history_data.status = 'Failed';
+                order_history_data.history_message = "scenario error:" + data.message;
+                historyCreate(order_history_data);
+
+                executionErrorLogo(service_id);
+                return false;
+            }
+            executionEndLogo(service_id);
+        });
+    }
 }
 
 function executionStartLogo(service_id) {
@@ -445,7 +464,7 @@ function executionEndLogo(service_id) {
 }
 
 function executionNormal() {
-    $("#service_info_table > tbody > tr").each(function() {
+    $("#service_info_table > tbody > tr").each(function () {
         $(this).find('td:eq(2)').html('<i class="far fa-play-circle" style="font-size:30px;"></i>');
     });
 }
@@ -693,11 +712,14 @@ function moveFile(file_source_oath, file_move_path, moved_file_name) {
     var dest = path.resolve(file_move_path + "/", f);
     // log.info(f);
     // log.info(dest);
-    fs.rename(file_source_oath + "/" + moved_file_name, dest, (err) => {
-        if (err) throw err;
-        else log.info('ファイル移動が完了しました。');
-    });
-
+    try {
+        fs.renameSync(file_source_oath + "/" + moved_file_name, dest);
+    } catch (e) {
+        log.error("can not move file: [source]:" + file_source_oath + "/" + moved_file_name + " [dest]:" + file_move_path + "/" + new_file_name + "exception:" + e);
+        return false;
+    }
+    log.info('ファイル移動が完了しました。');
+    return true;
 }
 
 function fileNameChange(fileName) {
@@ -735,7 +757,7 @@ function file_save_from_url(file_name, file_url, file_move_path, callback) {
         .then(resp => resp.blob())
         .then(blob => {
             var reader = new FileReader()
-            reader.onload = function() {
+            reader.onload = function () {
                 var buffer = new Buffer(reader.result)
                 fs.writeFile(file_move_path + "/" + file_name, buffer, {}, (err, res) => {
                     if (err) {
@@ -947,7 +969,7 @@ function downloadPDF(file_name, file_path_url) {
     oReq.responseType = "blob";
     // When the file request finishes
     // Is up to you, the configuration for error events etc.
-    oReq.onload = function() {
+    oReq.onload = function () {
         // Once the file is downloaded, open a new window with the PDF
         // Remember to allow the POP-UPS in your browser
         var file = new Blob([oReq.response], {

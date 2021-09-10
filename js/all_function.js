@@ -123,6 +123,7 @@ function folderCheck(service_id, callback) {
     // service data
     let service = getServiceData(service_id);
     if (!service) {
+        alert("サービス情報が取得できませんでした。");
         return false;
     }
     let service_name = service.service_name;
@@ -263,7 +264,7 @@ async function jobExec(service_id, service_traking_number = null, response_data 
     let service_data = service.service_data;
     let log_h = "[" + service_name + "][" + service_id + "]:";
 
-    log.debug(service);
+    // log.debug(service);
     // log.debug(response_data);
 
     // job execute flg check

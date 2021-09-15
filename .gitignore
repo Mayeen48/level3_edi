@@ -2,6 +2,9 @@
 /node_modules
 /logs
 /release-builds
+/properties.file
+/properties-serv.file
+/server-properties.file
 /package-lock.json
 /dist/*
 !.gitkeep

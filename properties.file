@@ -31,6 +31,8 @@ scenario_array={ "4":{"up_file":"LV3_FILE_DATA","order_id":1,"cmn_connect_id":"1
 #  error, warn, info, verbose, debug, silly
 console_log_level=false
 file_log_level=debug
+#you can change resfectevly size*1024
+max_log_file_size=-1
 
 # mail
 send_mail_address=sakaki@jacos.co.jp

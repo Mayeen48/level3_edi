@@ -17,16 +17,20 @@ try {
     var file_log_level = properties.get('file_log_level');
     var console_log_level = properties.get('console_log_level');
     var send_mail_address = properties.get('send_mail_address');
+    var max_log_file_size = properties.get('max_log_file_size');
+
 } catch (err) {
     alert("properties.fileが見つかりません。実行フォルダに配置してください。また、内容を確認してください")
     window.close();
     log.error(err.message);
 }
-
 log.transports.file.resolvePath = () => 'logs/level3-' + new Date().toISOString().slice(0, 10) + '.log';
+// log.transports.file.format = '{h}:{i}:{s} {text}';
 
 log.transports.console.level = console_log_level; // console log level
 log.transports.file.level = file_log_level; // file log level
+log.transports.file.maxSize = max_log_file_size;
+// log.transports.file.maxSize = 1024 * 1000;
 log.debug('app start---');
 
 
@@ -71,7 +75,7 @@ var interval_trigger;
 
 $(document).ready(function() {
     // mailsend("test sub","message");
-    mailsend("Biware level3 start","level3 started");
+    mailsend("Biware level3 start", "level3 started");
 
     // ログインチェック
     user_login();

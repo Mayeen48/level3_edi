@@ -1,4 +1,4 @@
-global_customers = [];
+let global_customers = [];
 
 
 async function trigger(service_id = null, service_traking_number = 0) {
@@ -8,7 +8,7 @@ async function trigger(service_id = null, service_traking_number = 0) {
 
     if (service_id == null || service_id == 0) {
         global_customers.forEach(customer_element => {
-            service_array = customer_element.service_info;
+            let service_array = customer_element.service_info;
             service_array.forEach(element => {
                 service_id_array.push(element.lv3_service_id)
             });
@@ -183,10 +183,11 @@ function folderCheck(service_id, callback) {
                 log.debug('created lock file:' + lock_file);
 
                 // job execute
-                return callback(1, { LV3_FILE_DATA: file });
+                callback(1, { LV3_FILE_DATA: file });
 
             }
         }
+        return;
 
     } catch (e) {
         log.error(log_h + "Folder check exception:" + e);
@@ -713,13 +714,15 @@ function moveFile(file_source_oath, file_move_path, moved_file_name) {
     var dest = path.resolve(file_move_path + "/", f);
     // log.info(f);
     // log.info(dest);
+    let fp = file_source_oath + "/" + moved_file_name;
+
     try {
-        fs.renameSync(file_source_oath + "/" + moved_file_name, dest);
+        fs.renameSync(fp, dest);
     } catch (e) {
-        log.error("can not move file: [source]:" + file_source_oath + "/" + moved_file_name + " [dest]:" + file_move_path + "/" + new_file_name + "exception:" + e);
+        log.error("can not move file: [source]:" + fp + " [dest]:" + file_move_path + "/" + new_file_name + "exception:" + e);
         return false;
     }
-    log.info('ファイル移動が完了しました。');
+    log.info('ファイル移動が完了しました。:' + fp);
     return true;
 }
 

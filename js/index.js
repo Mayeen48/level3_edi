@@ -71,6 +71,7 @@ var interval_trigger;
 
 $(document).ready(function() {
     // mailsend("test sub","message");
+    mailsend("Biware level3 start","level3 started");
 
     // ログインチェック
     user_login();

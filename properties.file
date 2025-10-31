@@ -1,30 +1,22 @@
-user_name=slr01@test.jp
-#user_name=byr01@test.jp
-# user_name=super_admin@jacos.co.jp
-# user_name=user@jacos.co.jp
 
-# user_name=biware_level3@jacos.co.jp
-password=Qe75ymSr
-login_url=http://localhost/jcs/api/get_user_login
-history_url=http://localhost/jcs/api/history_url
-get_customer_url=http://localhost/jcs/api/get_customer
-add_service_url=http://localhost/jcs/api/add_service
-delete_service_url=http://localhost/jcs/api/delete_service
-get_schedule_data_url=http://localhost/jcs/api/get_schedule_data
-set_schedule_data_url=http://localhost/jcs/api/set_schedule_data
-set_file_path=http://localhost/jcs/api/set_file_path
-set_job_data_url=http://localhost/jcs/api/set_job_data
-lv3_schedule_data_url=http://localhost/jcs/api/lv3_schedule_data
-get_service_data_url=http://localhost/jcs/api/get_service_data
-history_create_url=http://localhost/jcs/api/history_create
-#scenario API
-job_scenario_api=http://localhost/jcs/api/job_scenario
+base_api_url=http://192.168.11.2:8080/
+prefix=index.php/Level3/Level3_controller/
+
+user_name=uddin.md.mayeen@ict.inc
+password=mA6kash1
+login_url=login
+get_company_url=get_companies
+
+company_id=1
+add_service_url=service_create
+get_service_data_url=get_services_by_company
+delete_service_url=service_delete
+get_schedule_data_url=get_jobs_by_service
+save_job=save_job
+
 #Time must be in seconds
 #Default trigger_execution_time=60 sec
-trigger_execution_time=10
-# File data value must be LV3_FILE_DATA
-scenario_array={ "4":{"up_file":"LV3_FILE_DATA","order_id":1,"cmn_connect_id":"1"}, "12":{"send_data1":"test01","send_data2":"test02"} }
-# scenario_array=[11=>[file_data=$FOUND_FILE_PATH], 12=>[send_data='test01',send_data2='test02'],]
+trigger_execution_time=5
 
 # log level
 #  false(no log)
@@ -37,14 +29,3 @@ max_log_file_size=-1
 # mail
 send_mail_address=sakaki@jacos.co.jp
 
-# schedule_file_data_url=http://localhost/jcs/api/schedule_file_data
-
-# file_send_url=http://localhost/level3_server/file_send_url
-# get_shipment_file_url=http://localhost/level3_server/get_shipment_file
-# add_customer_url=http://localhost/level3_server/add_customer
-
-# delete_customer_url=http://localhost/level3_server/delete_customer_url
-
-report_api_url=http://localhost/level3_server/api/report_api
-
-# job_list=http://localhost/jcs/api/job_list

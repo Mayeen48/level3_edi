@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Level3</title>
+    <title>Level3_edi</title>
     <link rel="stylesheet" href="./bootstrap-4.1.3/css/bootstrap.css">
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="./css/jquery-ui.css">
@@ -48,14 +48,8 @@
                 <!-- -- Tab Stratt -- -->
                 <div id="tabs">
                     <ul>
-                        <li><a href="#tabs-1" id="first_tab">スケジュール実行</a></li>
                         <li><a href="#tabs-2" id="area_refresh">設定</a></li>
                     </ul>
-                    <div id="tabs-1" style="padding:2px;">
-                        <div id="history_table_div">
-
-                        </div>
-                    </div>
                     <div id="tabs-2" style="padding: 0px;">
                         <div id="tabs2">
                             <ul>
@@ -73,9 +67,9 @@
                                                     <tr>
                                                         <td>取引先名</td>
                                                         <td id="company_name_view"></td>
-                                                        <td>取引先コード</td>
-                                                        <td id="partner_code_view"></td>
-                                                        <input type="hidden" id="cmn_connect_id_for_schedule" value="0">
+                                                        <td>取引先ID</td>
+                                                        <td id="company_id_view"></td>
+                                                        <input type="hidden" id="company_id_view_hidden" value="0">
                                                     </tr>
                                                 </table>
 
@@ -171,29 +165,11 @@
                     <div id="tabs-popup-cover">
                         <ul>
                             <li><a href="#tabs-popup-cover-1">トリガー</a></li>
-                            <li><a href="#tabs-popup-cover-2">ジョブ</a></li>
-                            <li><a href="#tabs-popup-cover-3">連続実行</a></li>
-                            <!-- File Path  -->
                         </ul>
 
                         <div id="tabs-popup-cover-1" style="padding: 0px;">
-                            <!-- <div class="container-fluid">
-                                <div class="row">
-                                    <div class="col-md-4">設定中トリガー</div>
-                                </div>
-                            </div> -->
                             <div class="" id="tabs-popup">
                                 <ul>
-                                    <li>
-                                        <a href="#tabs-popup-1">
-                                            <div name="trigger_setting"></div> 曜日指定
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#tabs-popup-2">
-                                            <div name="trigger_setting"></div> 日付指定
-                                        </a>
-                                    </li>
                                     <li>
                                         <a href="#tabs-popup-3">
                                             <div name="trigger_setting"></div> フォルダ監視
@@ -208,111 +184,23 @@
                                 </ul>
 
                                 <div id="tabs-popup-1" style="padding: 0px;">
-
                                     <br />
                                     <div class="row">
                                         <input type="hidden" id="service_id_popup" value="">
-                                        <!-- <div class="col-md-2"></div> -->
-                                        <div class="col-md-10">
-                                            <table class="table table-bordered" id="week_data">
-                                                <thead>
-                                                    <th>#</th>
-                                                    <th>No</th>
-                                                    <th>時刻</th>
-                                                    <th>日</th>
-                                                    <th>月</th>
-                                                    <th>火</th>
-                                                    <th>水</th>
-                                                    <th>木</th>
-                                                    <th>金</th>
-                                                    <th>土</th>
-                                                </thead>
-                                                <tbody>
-
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <div class="col-md-2"></div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6"></div>
-                                        <div class="col-md-1">
-                                            <button id="add_new_row" class="btn btn-info"><i
-                                                    class="fas fa-plus-circle"></i></button>
-                                        </div>
-                                        <div class="col-md-1">
-                                            <button id="delete_row" class="btn btn-danger"><i
-                                                    class="fas fa-trash-alt"></i></button>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <div class="row">
-                                                <!-- <div class="col-sm-2"></div> -->
-                                                <div class="col-sm-4">
-                                                    <button class="btn btn-primary float-left" style="margin-right: 10px;" id="schedule_create">保存</button>
-                                                </div>
-                                                <div class="col-sm-4"></div>
-                                            </div>
-                                        </div>
                                     </div>
 
                                 </div>
-                                <div id="tabs-popup-2" style="padding: 0px;">
-                                    <br />
-                                    <div class="row">
-                                        <div class="col-md-2"></div>
-                                        <div class="col-md-8">
-                                            <table class="table table-bordered" id="date_specification_table">
-                                                <thead>
-                                                    <th>#</th>
-                                                    <th>No</th>
-                                                    <th>時刻</th>
-                                                    <th>月末</th>
-                                                    <th>日付</th>
-
-                                                </thead>
-                                                <tbody>
-
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <div class="col-md-2"></div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6"></div>
-                                        <div class="col-md-1">
-                                            <button id="add_new_date_row" class="btn btn-info"><i
-                                                    class="fas fa-plus-circle"></i></button>
-                                        </div>
-                                        <div class="col-md-1">
-                                            <button id="delete_date_row" class="btn btn-danger"><i
-                                                    class="fas fa-trash-alt"></i></button>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <div class="row">
-                                                <div class="col-sm-2"></div>
-                                                <div class="col-sm-4">
-                                                    <button class="btn btn-primary float-left" style="margin-right: 10px;" id="schedule_create">保存</button>
-                                                </div>
-                                                <div class="col-sm-4"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                
                                 <div id="tabs-popup-3" style="padding: 0px;">
                                     <br />
                                     <div class="row">
                                         <div class="col-md-1"></div>
                                         <div class="col-md-10">
-                                            <!-- Text input-->
                                             <div class="form-group">
                                                 <div class="row">
                                                     <label class="col-md-8 control-label" for="path_execution_flag">フォルダ監視実行</label>
-                                                    <!-- File execution -->
-                                                    <input type="hidden" value="" id="file_path_id">
+                                                   
+                                                    <input type="hidden" value="" id="file_job_id">
                                                     <div class="col-md-4">
                                                         <input id="path_execution_flag" name="path_execution_flag" type="checkbox" class="" style="text-align: left !important;">
                                                     </div>
@@ -320,21 +208,21 @@
                                             </div>
 
                                             <div class="form-group">
-                                                <label class="col-md-12 control-label path_level" for="check_folder_path">監視フォルダパス</label>
-                                                <!--File Source Path-->
+                                                <label class="col-md-12 control-label path_level" for="source_dir_path">監視フォルダパス</label>
+                                                
                                                 <div class="upload-btn-wrapper">
-                                                    <input type="text" class="file_path_level control-label  text-left" id="check_folder_path_box">
-                                                    <button class="btn  browse_btn file_path_level_button" onclick="$('#check_folder_path').click();">参照</button>
-                                                    <input type="file" class="file_input" id="check_folder_path" multiple directory webkitdirectory mozdirectory />
+                                                    <input type="text" class="file_path_level control-label  text-left" id="source_dir_path_input">
+                                                    <button class="btn  browse_btn file_path_level_button" onclick="$('#source_dir_path').click();">参照</button>
+                                                    <input type="file" class="file_input" id="source_dir_path" multiple directory webkitdirectory mozdirectory />
                                                 </div>
                                             </div>
                                             <div class="form-group">
-                                                <label class="col-md-12 control-label path_level" for="move_folder_path">ファイル移動先フォルダパス</label>
-                                                <!-- File Move Path -->
+                                                <label class="col-md-12 control-label path_level" for="moved_dir_path">ファイル移動先フォルダパス</label>
+                                                
                                                 <div class="upload-btn-wrapper">
-                                                    <input type="text" class="file_path_level control-label  text-left" id="move_folder_path_box">
-                                                    <button class="btn  browse_btn" onclick="$('#move_folder_path').click();">参照</button>
-                                                    <input type="file" class="file_input" id="move_folder_path" multiple directory webkitdirectory mozdirectory />
+                                                    <input type="text" class="file_path_level control-label  text-left" id="moved_dir_path_input">
+                                                    <button class="btn  browse_btn" onclick="$('#moved_dir_path').click();">参照</button>
+                                                    <input type="file" class="file_input" id="moved_dir_path" multiple directory webkitdirectory mozdirectory />
                                                 </div>
                                             </div>
 
@@ -362,7 +250,6 @@
                                             <div class="form-group">
                                                 <div class="row">
                                                     <label class="col-md-8 control-label" for="api_execution_flag">API実行</label>
-                                                    <!-- <input type="hidden" value="" id="file_path_id"> -->
                                                     <div class="col-md-4">
                                                         <input id="api_execution_flag" name="api_execution_flag" type="checkbox" class="" style="text-align: left !important;">
                                                     </div>
@@ -376,12 +263,12 @@
                                                 </div>
                                             </div>
                                             <div class="form-group">
-                                                <label class="col-md-12 control-label path_level" for="api_folder_path">APIフォルダパス</label>
+                                                <label class="col-md-12 control-label path_level" for="api_dir_path">APIフォルダパス</label>
                                                 <!-- File Move Path -->
                                                 <div class="upload-btn-wrapper">
-                                                    <input type="text" class="file_path_level control-label  text-left" id="api_folder_path_box">
-                                                    <button class="btn  browse_btn" onclick="$('#api_folder_path').click();">参照</button>
-                                                    <input type="file" class="file_input" id="api_folder_path" multiple directory webkitdirectory mozdirectory />
+                                                    <input type="text" class="file_path_level control-label  text-left" id="api_dir_path_input">
+                                                    <button class="btn  browse_btn" onclick="$('#api_dir_path').click();">参照</button>
+                                                    <input type="file" class="file_input" id="api_dir_path" multiple directory webkitdirectory mozdirectory />
                                                 </div>
                                             </div>
 
@@ -397,84 +284,6 @@
                                         <div class="col-sm-7"></div>
                                     </div>
                                 </div>
-                            </div>
-                            <!-- -- Account Setting End -- -->
-                        </div>
-                        <div id="tabs-popup-cover-2" style="padding: 0px;">
-                            <!-- Job Tab  -->
-                            <br>
-                            <!-- Text input-->
-
-                            <div class="form-group">
-                                <div class="row">
-                                    <div class="col-md-3 text-right">
-                                        <label class="control-label" for="job_execution_flag">ジョブ実行</label>
-                                    </div>
-                                    <!-- File execution -->
-                                    <div class="col-md-1">
-                                        <input type="hidden" value="" id="job_update_id">
-                                        <input id="job_execution_flag" name="job_execution_flag" type="checkbox" class="" style="text-align: left !important;">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <div class="row">
-                                    <div class="col-md-1">
-                                        <input id="scenario_execute" name="execute" type="radio" class="form-control" style="text-align: left !important;">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="control-label path_level" for="scenario_execute">シナリオ</label>
-                                    </div>
-                                    <div class="col-md-9">
-                                        <select name="cmn_scenario_id" id="cmn_scenario_id" class="form-control" onclick="$('#scenario_execute').click();"></select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="row">
-                                    <div class="col-md-1">
-                                        <input id="batch_execute" name="execute" type="radio" class="form-control" style="text-align: left !important;">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="col-md-12 control-label path_level" for="batch_file_path">ファイル</label>
-                                    </div>
-                                    <div class="col-md-9">
-                                        <div class="upload-btn-wrapper">
-                                            <input type="text" class="file_path_level control-label  text-left" id="batch_file_path_box" onclick="$('#batch_execute').click();">
-                                            <button class="btn  browse_btn" onclick="$('#batch_file_path').click();">参照</button>
-                                            <input type="file" onclick="$('#batch_execute').click();" class="file_input" id="batch_file_path" accept=".bat" multiple mozdirectory />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    <button class="btn btn-primary float-left" style="margin-right: 10px;" id="job_save">保存</button>
-                                </div>
-                                <div class="col-sm-4"></div>
-                            </div>
-                        </div>
-                        <!-- Next Service Tab  -->
-                        <div id="tabs-popup-cover-3" style="padding: 0px;">
-                            <br>
-
-                            <div class="form-group">
-                                <div class="row">
-                                    <div class="col-md-2 text-center">
-                                        <label class="control-label path_level" for="next_service">次サービス</label>
-                                    </div>
-                                    <div class="col-md-10">
-                                        <select name="next_service" id="next_service" class="form-control"></select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    <button class="btn btn-primary float-left" style="margin-right: 10px;" id="next_service_save">保存</button>
-                                </div>
-                                <div class="col-sm-4"></div>
                             </div>
                         </div>
                     </div>
@@ -562,28 +371,6 @@
         </div>
     </div>
     <!--Add service Modal End    -->
-    <!-- View history details modal  -->
-    <div class="modal fade" id="history_details_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">History Details</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <div class="modal-body" style="padding:5px;">
-                    <label class="col-sm-12 col-form-label" id="h_details"></label>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
-                </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <!--View history details Modal End    -->
     <!-- Calendar Modal -->
     <div class="modal fade tab-modal-box" id="myModal">
         <div class="modal-dialog modal-md modal-tab">

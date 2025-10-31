@@ -235,26 +235,6 @@ function executionNormal() {
         $(this).find('td').eq(2).html('<i class="far fa-play-circle" style="font-size:30px;"></i>');
     });
 }
-
-// function executionNormal() {
-//     $("#service_info_table > tbody > tr").each(function () {
-//         $(this).find('td:eq(2)').html('<i class="far fa-play-circle" style="font-size:30px;"></i>');
-//     });
-// }
-// Text file download function 
-function file_download(text, filename) {
-
-    var element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', filename);
-
-    element.style.display = 'none';
-    document.body.appendChild(element);
-
-    element.click();
-
-    document.body.removeChild(element);
-}
 // current time return 
 function cur_time() {
     var dt = new Date();
